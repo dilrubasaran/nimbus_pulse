@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nimbus_pulse/layout/header.dart';
 import 'package:nimbus_pulse/layout/sidebar.dart';
+import 'package:nimbus_pulse/pages/settings/settings_header.dart';
 
 class SettingsPasswordPage extends StatelessWidget {
   @override
@@ -134,21 +135,6 @@ class ProfileInputField extends StatelessWidget {
             color: Color(0xFFA3A3A3),
           ),
         ),
-      ],
-    );
-  }
-}
-
-class SettingsHeader extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        TabButton(title: "Profil", isSelected: false),
-        TabButton(title: "Şifre", isSelected: true),
-        TabButton(title: "Güvenlik Kodu", isSelected: false),
-        TabButton(title: "Tema ve Dil Seçenekleri", isSelected: false),
       ],
     );
   }
