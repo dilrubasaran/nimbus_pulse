@@ -24,7 +24,9 @@ class SettingsProfilePage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Settings Header
-                        SettingsHeader(),
+                        SettingsHeader(
+                          currentTab: 'Profil',
+                        ),
                         SizedBox(height: 24),
                         // Profile Form
                         Expanded(

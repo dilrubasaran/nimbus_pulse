@@ -1,33 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nimbus_pulse/pages/Server.dart';
-import 'package:nimbus_pulse/pages/dashboard_home.dart';
-import 'package:nimbus_pulse/pages/login.dart';
-import 'package:nimbus_pulse/pages/reports.dart';
-import 'package:nimbus_pulse/pages/settings/settings_profile.dart';
 import '../styles/consts.dart';
 
-class Sidebar extends StatelessWidget {
+class Sidebar extends StatefulWidget {
+  @override
+  _SidebarState createState() => _SidebarState();
+}
+
+class _SidebarState extends State<Sidebar> {
+  // Aktif route bilgisini saklayacak
+  String activeRoute = '/dashboard';
+
   @override
   Widget build(BuildContext context) {
-    // Ekran genişliğini al
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // Responsive genişlik belirle
     double sidebarWidth;
     bool showText;
 
     if (screenWidth < 600) {
-      // Mobil
-      sidebarWidth = 72; // Sadece ikonlar
+      sidebarWidth = 72;
       showText = false;
     } else if (screenWidth < 1200) {
-      // Tablet
-      sidebarWidth = screenWidth * 0.25; // İçerikle uyumlu genişlik
+      sidebarWidth = screenWidth * 0.25;
       showText = true;
     } else {
-      // Web
-      sidebarWidth = 250; // Varsayılan genişlik
+      sidebarWidth = 250;
       showText = true;
     }
 
@@ -37,11 +35,10 @@ class Sidebar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (showText) // Logo ve Başlık sadece geniş ekranlarda görünür
+          if (showText)
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SvgPicture.asset(
                     'assets/images/nimbuspulse_logo.svg',
@@ -53,8 +50,6 @@ class Sidebar extends StatelessWidget {
                     "Welcome",
                     style: TextStyle(fontSize: 12, color: primaryTextColor),
                   ),
-
-                  //! loginde ki kullanıcı ismi olacak
                   Text(
                     "Dilruba Başaran",
                     style: TextStyle(
@@ -66,22 +61,10 @@ class Sidebar extends StatelessWidget {
                 ],
               ),
             ),
-          if (showText) const Divider(color: secondaryTextColor), // Çizgi
-          // Menü Öğeleri
+          if (showText) const Divider(color: secondaryTextColor),
           Expanded(
             child: ListView(
-              children: [
-                _buildMenuItem(Icons.dashboard, "Dashboard", context,
-                    DashboardHome(), showText),
-                _buildMenuItem(
-                    Icons.computer, "Server", context, ServerPage(), showText),
-                _buildMenuItem(Icons.bar_chart, "Reports", context,
-                    ReportsPage(), showText),
-                _buildMenuItem(Icons.settings, "Settings", context,
-                    SettingsProfilePage(), showText),
-                _buildMenuItem(
-                    Icons.logout, "Log Out", context, LoginPage(), showText),
-              ],
+              children: _buildMenuItems(showText),
             ),
           ),
         ],
@@ -89,26 +72,45 @@ class Sidebar extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, BuildContext context,
-      Widget targetPage, bool showText) {
-    return ListTile(
-      leading: Icon(icon, color: secondaryTextColor),
-      title: showText
-          ? Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                fontFamily: fontNunitoSans,
-                color: secondaryTextColor,
-              ),
-            )
-          : null, //sadece icon gözüksün
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => targetPage),
-        );
+  List<Widget> _buildMenuItems(bool showText) {
+    final menuItems = [
+      {'icon': Icons.dashboard, 'title': 'Dashboard', 'route': '/dashboard'},
+      {'icon': Icons.computer, 'title': 'Server', 'route': '/server'},
+      {'icon': Icons.bar_chart, 'title': 'Reports', 'route': '/reports'},
+      {
+        'icon': Icons.settings,
+        'title': 'Settings',
+        'route': '/settings/settings_profile'
       },
-    );
+      {'icon': Icons.logout, 'title': 'Log Out', 'route': '/login'},
+    ];
+
+    return menuItems.map((item) {
+      return ListTile(
+        leading: Icon(
+          item['icon'] as IconData,
+          color:
+              activeRoute == item['route'] ? Colors.blue : secondaryTextColor,
+        ),
+        title: showText
+            ? Text(
+                item['title'] as String,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: fontNunitoSans,
+                  color: activeRoute == item['route']
+                      ? Colors.blue
+                      : secondaryTextColor,
+                ),
+              )
+            : null,
+        onTap: () {
+          setState(() {
+            activeRoute = item['route'] as String;
+          });
+          Navigator.pushNamed(context, activeRoute);
+        },
+      );
+    }).toList();
   }
 }

@@ -24,7 +24,9 @@ class SettingsPasswordPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Settings Header
-                        SettingsHeader(),
+                        SettingsHeader(
+                          currentTab: 'Password',
+                        ),
                         SizedBox(height: 24),
                         // Password Change Form
                         Expanded(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'pages/dashboard_home.dart';
+import 'navigation/route_generator.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,7 +18,8 @@ class MyApp extends StatelessWidget {
         fontFamily: "Nunito Sans",
         scaffoldBackgroundColor: (Colors.white10),
       ),
-      home: DashboardHome(),
+      initialRoute: '/dashboard', // Varsayılan olarak Dashboard açılır
+      onGenerateRoute: RouteGenerator.generateRoute,
     );
   }
 }
