@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:nimbus_pulse/pages/register.dart';
 import 'package:nimbus_pulse/services/user_service.dart';
 
-class LoginPage extends StatefulWidget {
+class RegisterPage extends StatefulWidget {
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _RegisterPageState createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   String _email = '';
+  String _username = '';
   String _password = '';
 
   @override
@@ -41,24 +41,24 @@ class _LoginPageState extends State<LoginPage> {
                       onSaved: (value) => _email = value!,
                     ),
                     TextFormField(
+                      decoration: InputDecoration(labelText: 'Username'),
+                      onSaved: (value) => _username = value!,
+                    ),
+                    TextFormField(
                       decoration: InputDecoration(labelText: 'Password'),
                       obscureText: true,
                       onSaved: (value) => _password = value!,
                     ),
                     SizedBox(height: 20.0),
                     ElevatedButton(
-                      onPressed: _login,
-                      child: Text('Login'),
+                      onPressed: _register,
+                      child: Text('Sign Up'),
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => RegisterPage()),
-                        );
+                        Navigator.pop(context);
                       },
-                      child: Text('Create an account'),
+                      child: Text('Already have an account? Login'),
                     ),
                   ],
                 ),
@@ -70,13 +70,13 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _login() {
+  void _register() {
     final form = _formKey.currentState;
     if (form!.validate()) {
       form.save();
-      UserService.login(_email, _password).then((success) {
+      UserService.register(_email, _username, _password).then((success) {
         if (success) {
-          // Navigate to home screen
+          Navigator.pop(context);
         } else {
           // Show error
         }

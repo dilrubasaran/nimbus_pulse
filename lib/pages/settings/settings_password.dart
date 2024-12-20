@@ -25,7 +25,7 @@ class SettingsPasswordPage extends StatelessWidget {
                       children: [
                         // Settings Header
                         SettingsHeader(
-                          currentTab: 'Password',
+                          currentTab: '',
                         ),
                         SizedBox(height: 24),
                         // Password Change Form

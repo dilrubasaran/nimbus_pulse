@@ -26,7 +26,9 @@ class SettingsHeader extends StatelessWidget {
       BuildContext context, String title, String route, bool isSelected) {
     return TextButton(
       onPressed: () {
-        Navigator.removeRoute(context, route as Route);
+        if (ModalRoute.of(context)?.settings.name != route) {
+          Navigator.pushReplacementNamed(context, route);
+        }
       },
       style: TextButton.styleFrom(
         backgroundColor: isSelected ? Colors.blue : Colors.transparent,
