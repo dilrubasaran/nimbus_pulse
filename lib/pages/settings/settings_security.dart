@@ -15,7 +15,7 @@ class SettingsSecurityPage extends StatelessWidget {
             child: Column(
               children: [
                 // Header
-                Header(),
+                Header(title: 'Güvenlik Kodu'),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(

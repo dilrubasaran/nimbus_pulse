@@ -15,7 +15,7 @@ class SettingsProfilePage extends StatelessWidget {
             child: Column(
               children: [
                 // Header
-                Header(),
+                Header(title: 'Profil'),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(

@@ -7,24 +7,31 @@ class DeviceCard extends StatelessWidget {
   final Color statusColor;
   final String serverStatus;
   final Color borderColor;
+  final bool isSelected;
+  final VoidCallback onSelect;
 
-  DeviceCard({
+  const DeviceCard({
+    Key? key,
     required this.deviceName,
     required this.deviceType,
     required this.status,
     required this.statusColor,
     required this.serverStatus,
     required this.borderColor,
-  });
+    required this.isSelected,
+    required this.onSelect,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 160, // Sabit genişlik
-      height: 120, // Sabit yükseklik
-      child: Card(
-        shape: RoundedRectangleBorder(
-          side: BorderSide(color: borderColor, width: 2),
+    return InkWell(
+      onTap: onSelect,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? Colors.blue : borderColor,
+            width: isSelected ? 2 : 1,
+          ),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Padding(

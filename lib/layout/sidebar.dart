@@ -8,7 +8,6 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
-  // Aktif route bilgisini saklayacak
   String activeRoute = '/dashboard';
 
   @override
@@ -64,6 +63,7 @@ class _SidebarState extends State<Sidebar> {
           if (showText) const Divider(color: secondaryTextColor),
           Expanded(
             child: ListView(
+              padding: EdgeInsets.symmetric(vertical: 8),
               children: _buildMenuItems(showText),
             ),
           ),
@@ -74,42 +74,74 @@ class _SidebarState extends State<Sidebar> {
 
   List<Widget> _buildMenuItems(bool showText) {
     final menuItems = [
-      {'icon': Icons.dashboard, 'title': 'Dashboard', 'route': '/dashboard'},
-      {'icon': Icons.computer, 'title': 'Server', 'route': '/server'},
-      {'icon': Icons.bar_chart, 'title': 'Reports', 'route': '/reports'},
       {
-        'icon': Icons.settings,
+        'icon': Icons.dashboard_outlined,
+        'title': 'Dashboard',
+        'route': '/dashboard'
+      },
+      {'icon': Icons.computer_outlined, 'title': 'Server', 'route': '/server'},
+      {
+        'icon': Icons.bar_chart_outlined,
+        'title': 'Reports',
+        'route': '/reports'
+      },
+      {
+        'icon': Icons.settings_outlined,
         'title': 'Settings',
         'route': '/settings/settings_profile'
       },
-      {'icon': Icons.logout, 'title': 'Log Out', 'route': '/login'},
+      {
+        'icon': Icons.logout,
+        'title': 'Log Out',
+        'route': '/login',
+        'showActive': false
+      },
     ];
 
     return menuItems.map((item) {
-      return ListTile(
-        leading: Icon(
-          item['icon'] as IconData,
-          color:
-              activeRoute == item['route'] ? Colors.blue : secondaryTextColor,
+      final bool isActive =
+          item['showActive'] != false && activeRoute == item['route'];
+
+      return Container(
+        margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: isActive ? Colors.blue.withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border(
+            left: BorderSide(
+              color: isActive ? Colors.blue : Colors.transparent,
+              width: 3,
+            ),
+          ),
         ),
-        title: showText
-            ? Text(
-                item['title'] as String,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontFamily: fontNunitoSans,
-                  color: activeRoute == item['route']
-                      ? Colors.blue
-                      : secondaryTextColor,
-                ),
-              )
-            : null,
-        onTap: () {
-          setState(() {
-            activeRoute = item['route'] as String;
-          });
-          Navigator.pushNamed(context, activeRoute);
-        },
+        child: ListTile(
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: showText ? 24 : 16,
+            vertical: 4,
+          ),
+          leading: Icon(
+            item['icon'] as IconData,
+            size: 20,
+            color: isActive ? Colors.blue : secondaryTextColor,
+          ),
+          title: showText
+              ? Text(
+                  item['title'] as String,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontFamily: fontNunitoSans,
+                    color: isActive ? Colors.blue : secondaryTextColor,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                )
+              : null,
+          onTap: () {
+            setState(() {
+              activeRoute = item['route'] as String;
+            });
+            Navigator.pushNamed(context, activeRoute);
+          },
+        ),
       );
     }).toList();
   }

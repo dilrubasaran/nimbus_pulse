@@ -15,7 +15,7 @@ class SettingsPasswordPage extends StatelessWidget {
             child: Column(
               children: [
                 // Header
-                Header(),
+                Header(title: 'Şifre'),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -25,7 +25,7 @@ class SettingsPasswordPage extends StatelessWidget {
                       children: [
                         // Settings Header
                         SettingsHeader(
-                          currentTab: '',
+                          currentTab: 'Şifre',
                         ),
                         SizedBox(height: 24),
                         // Password Change Form
