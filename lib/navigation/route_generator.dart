@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:nimbus_pulse/pages/dashboard_home.dart';
+import 'package:nimbus_pulse/pages/server.dart';
 import 'package:nimbus_pulse/pages/device_detail.dart';
 import 'package:nimbus_pulse/pages/login.dart';
 import 'package:nimbus_pulse/pages/register.dart';
-import 'package:nimbus_pulse/pages/server.dart';
+import 'package:nimbus_pulse/pages/dashboard.dart';
 import 'package:nimbus_pulse/pages/reports.dart';
 import 'package:nimbus_pulse/pages/settings/settings_profile.dart';
 import 'package:nimbus_pulse/pages/settings/settings_password.dart';
@@ -20,7 +20,7 @@ class RouteGenerator {
       case '/register':
         return MaterialPageRoute(builder: (_) => RegisterPage());
       case '/dashboard':
-        return MaterialPageRoute(builder: (_) => DashboardHome());
+        return MaterialPageRoute(builder: (_) => Dashboard());
       case '/server':
         return MaterialPageRoute(builder: (_) => ServerPage());
       case '/reports':
