@@ -3,12 +3,35 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../styles/consts.dart';
 
 class Sidebar extends StatefulWidget {
+  final String currentRoute;
+
+  const Sidebar({
+    Key? key,
+    required this.currentRoute,
+  }) : super(key: key);
+
   @override
   _SidebarState createState() => _SidebarState();
 }
 
 class _SidebarState extends State<Sidebar> {
-  String activeRoute = '/dashboard';
+  late String activeRoute;
+
+  @override
+  void initState() {
+    super.initState();
+    activeRoute = widget.currentRoute;
+  }
+
+  @override
+  void didUpdateWidget(Sidebar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentRoute != oldWidget.currentRoute) {
+      setState(() {
+        activeRoute = widget.currentRoute;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

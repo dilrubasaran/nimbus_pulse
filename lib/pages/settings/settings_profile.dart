@@ -10,7 +10,7 @@ class SettingsProfilePage extends StatelessWidget {
       body: Row(
         children: [
           // Sidebar
-          Sidebar(),
+          Sidebar(currentRoute: '/settings/settings_profile'),
           Expanded(
             child: Column(
               children: [

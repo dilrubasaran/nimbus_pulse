@@ -10,7 +10,7 @@ class SettingsPasswordPage extends StatelessWidget {
       body: Row(
         children: [
           // Sidebar
-          Sidebar(),
+          Sidebar(currentRoute: '/settings/settings_password'),
           Expanded(
             child: Column(
               children: [

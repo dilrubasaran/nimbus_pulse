@@ -10,7 +10,7 @@ class SettingsSecurityPage extends StatelessWidget {
       body: Row(
         children: [
           // Sidebar
-          Sidebar(),
+          Sidebar(currentRoute: '/settings/settings_security'),
           Expanded(
             child: Column(
               children: [
