@@ -2,21 +2,21 @@ class ApiEndpoints {
   static const String baseUrl = 'https://10.0.2.2:7185/api';
 
   // Auth endpoints
-  static const String register = '/User/Register';
-  static const String login = '/User/Login';
+  static const String register = '/user/register';
+  static const String login = '/user/login';
   static const String logout = '/User/Logout';
   static const String refreshToken = '/User/RefreshToken';
 
   // User endpoints
-  static const String checkEmail = '/users/check-email';
-  static const String validateCompany = '/companies/validate';
-  static const String userProfile = '/users/profile';
-  static const String updateProfile = '/users/profile/update';
-  static const String changePassword = '/users/change-password';
+  static const String checkEmail = '/user/check-email';
+  static const String validateCompany = '/user/validate-company';
+  static const String userProfile = '/user/profile';
+  static const String updateProfile = '/user/update-profile';
+  static const String changePassword = '/user/change-password';
 
   // Device endpoints
   static const String devices = '/devices';
-  static const String deviceDetails = '/devices/{id}';
+  static const String deviceDetails = '/devices/details';
   static const String deviceApplications = '/devices/{id}/applications';
   static const String deviceResources = '/devices/{id}/resources';
   static const String deviceRestart = '/devices/{id}/restart';

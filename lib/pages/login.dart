@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-//import 'package:nimbus_pulse/services/user_service.dart';
+import '../services/login_service.dart';
+import '../core/network/dio_client.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -13,6 +14,66 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  bool _isLoading = false;
+
+  void _login() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final loginService = LoginService(DioClient());
+        final response = await loginService.login(
+          _emailController.text,
+          _passwordController.text,
+        );
+
+        print('Login response: $response');
+
+        // Login başarılı
+        if (response.containsKey('token')) {
+          print('Token received, navigating to server page...');
+          Navigator.pushReplacementNamed(context, '/server');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Login successful!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          // Token yok ama başarılı yanıt
+          print('No token in response, but login successful');
+          Navigator.pushReplacementNamed(context, '/server');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['message'] ?? 'Login successful!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        print('Login error caught: $e');
+        String errorMessage = e.toString();
+        if (errorMessage.startsWith('Exception: ')) {
+          errorMessage = errorMessage.substring('Exception: '.length);
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            duration: Duration(seconds: 5),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,15 +195,25 @@ class _LoginPageState extends State<LoginPage> {
                             width: double.infinity,
                             height: 48,
                             child: ElevatedButton(
-                              onPressed: _login,
-                              child: Text(
-                                'Sign In',
-                                style: TextStyle(
-                                  fontSize: maxWidth > 600 ? 18 : 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
+                              onPressed: _isLoading ? null : _login,
+                              child: _isLoading
+                                  ? SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white),
+                                      ),
+                                    )
+                                  : Text(
+                                      'Sign In',
+                                      style: TextStyle(
+                                        fontSize: maxWidth > 600 ? 18 : 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
                                 shape: RoundedRectangleBorder(
@@ -288,13 +359,6 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ],
     );
-  }
-
-  void _login() {
-    if (_formKey.currentState!.validate()) {
-      // Direkt dashboard'a git
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    }
   }
 
   @override
