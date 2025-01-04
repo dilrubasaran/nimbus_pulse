@@ -144,28 +144,36 @@ class _ServerPage extends State<ServerPage> {
       body: Column(
         children: [
           Container(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: Column(
               children: [
                 Row(
                   children: [
-                    _buildActionButton(
-                      icon: Icons.add_circle_outline,
-                      text: "Yeni Cihaz Ekle",
-                      onTap: _showAddDeviceDialog,
+                    Expanded(
+                      flex: 1,
+                      child: _buildActionButton(
+                        icon: Icons.add_circle_outline,
+                        text: "Yeni Cihaz Ekle",
+                        onTap: _showAddDeviceDialog,
+                        color: Colors.blue,
+                      ),
                     ),
                     SizedBox(width: 16),
-                    if (_selectedDevices.isNotEmpty)
-                      _buildActionButton(
-                        icon: Icons.remove_circle_outline,
-                        text: "Cihaz Kaldır",
-                        onTap: _deleteSelectedDevices,
-                        color: Colors.red,
-                      ),
+                    Expanded(
+                      flex: 1,
+                      child: _buildSortingDropdown(),
+                    ),
                   ],
                 ),
-                _buildSortingDropdown(),
+                if (_selectedDevices.isNotEmpty) ...[
+                  SizedBox(height: 12),
+                  _buildActionButton(
+                    icon: Icons.remove_circle_outline,
+                    text: "Cihaz Kaldır",
+                    onTap: _deleteSelectedDevices,
+                    color: Colors.red,
+                  ),
+                ],
               ],
             ),
           ),
@@ -173,14 +181,15 @@ class _ServerPage extends State<ServerPage> {
             child: _isLoading
                 ? Center(child: CircularProgressIndicator())
                 : Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(24.0),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        const cardWidth = 160;
+                        final double cardWidth = 180;
+                        final double cardHeight = 100;
                         int crossAxisCount =
                             (constraints.maxWidth / cardWidth).floor();
-                        if (crossAxisCount > 7) crossAxisCount = 7;
-                        if (crossAxisCount < 2) crossAxisCount = 2;
+                        if (crossAxisCount < 2) crossAxisCount = 1;
+                        if (crossAxisCount > 6) crossAxisCount = 6;
 
                         return GridView.builder(
                           gridDelegate:
@@ -188,27 +197,11 @@ class _ServerPage extends State<ServerPage> {
                             crossAxisCount: crossAxisCount,
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
-                            childAspectRatio: cardWidth / 120,
+                            childAspectRatio: cardWidth / cardHeight,
                           ),
                           itemCount: _devices.length,
                           itemBuilder: (context, index) {
                             final device = _devices[index];
-                            String serverStatus;
-                            Color borderColor;
-
-                            if (device.resourceUsage.cpuUsage > 80 ||
-                                device.resourceUsage.ramUsage > 80) {
-                              serverStatus = "Kritik";
-                              borderColor = Colors.red;
-                            } else if (device.resourceUsage.cpuUsage > 60 ||
-                                device.resourceUsage.ramUsage > 60) {
-                              serverStatus = "Kontrol Gerektiriyor";
-                              borderColor = Colors.yellow;
-                            } else {
-                              serverStatus = "İyi";
-                              borderColor = Colors.green;
-                            }
-
                             return GestureDetector(
                               onTap: () {
                                 setState(() {
@@ -236,7 +229,7 @@ class _ServerPage extends State<ServerPage> {
                                 statusColor:
                                     device.status.toLowerCase() == "active"
                                         ? Colors.green
-                                        : Colors.black,
+                                        : Colors.red,
                                 serverStatus: device.healthStatus,
                                 borderColor:
                                     _getHealthStatusColor(device.healthStatus),
@@ -267,29 +260,38 @@ class _ServerPage extends State<ServerPage> {
     required IconData icon,
     required String text,
     required VoidCallback onTap,
-    Color? color,
+    required Color color,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: color?.withOpacity(0.1) ?? Colors.blue.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18, color: color ?? Colors.blue),
-            SizedBox(width: 8),
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: 14,
-                color: color ?? Colors.blue,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: color.withOpacity(0.5)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: color),
+              SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: color,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -297,31 +299,46 @@ class _ServerPage extends State<ServerPage> {
 
   Widget _buildSortingDropdown() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.blue.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blue.withOpacity(0.5)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _sortBy,
-          icon: Icon(Icons.arrow_drop_down, color: Colors.blue),
+          icon: Icon(Icons.arrow_drop_down, color: Colors.blue, size: 20),
+          iconSize: 16,
+          elevation: 2,
+          isDense: true,
+          isExpanded: true,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
             color: Colors.blue,
           ),
           items: [
             DropdownMenuItem(
               value: 'status',
-              child: Text('Kritik Duruma Göre'),
+              child: Text(
+                'Kritik Duruma Göre',
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             DropdownMenuItem(
               value: 'resource',
-              child: Text('Kaynak Kullanımına Göre'),
+              child: Text(
+                'Kaynak Kullanımına Göre',
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             DropdownMenuItem(
               value: 'name',
-              child: Text('Alfabetik'),
+              child: Text(
+                'Alfabetik',
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
           onChanged: (value) {
@@ -364,7 +381,7 @@ class _ServerPage extends State<ServerPage> {
     switch (healthStatus.toLowerCase()) {
       case 'good':
         return Colors.green;
-      case 'warning':
+      case 'requires check':
         return Colors.yellow;
       case 'critical':
         return Colors.red;
