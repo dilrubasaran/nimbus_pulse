@@ -9,18 +9,24 @@ import 'package:nimbus_pulse/pages/settings/settings_profile.dart';
 import 'package:nimbus_pulse/pages/settings/settings_password.dart';
 import 'package:nimbus_pulse/pages/settings/settings_theme_language.dart';
 import 'package:nimbus_pulse/pages/settings/settings_security.dart';
+import '../pages/dashboard.dart';
+import '../pages/server.dart';
+import '../pages/login.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
+    print('\n=== Route Navigation ===');
+    print('Route: ${settings.name}');
+    print('Arguments: ${settings.arguments}');
+
     switch (settings.name) {
       case '/':
-        return MaterialPageRoute(builder: (_) => LoginPage());
+        return MaterialPageRoute(builder: (_) => ServerPage());
       case '/login':
         return MaterialPageRoute(builder: (_) => LoginPage());
       case '/register':
         return MaterialPageRoute(builder: (_) => RegisterPage());
-      case '/dashboard':
-        return MaterialPageRoute(builder: (_) => Dashboard());
+
       case '/server':
         return MaterialPageRoute(builder: (_) => ServerPage());
       case '/reports':
@@ -33,33 +39,37 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => SettingsThemeLanguagePage());
       case '/settings/settings_security':
         return MaterialPageRoute(builder: (_) => SettingsSecurityPage());
-      case '/device_detail':
-        final args = settings.arguments as Map<String, String>?;
-        if (args != null) {
+
+      case '/dashboard':
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args == null || !args.containsKey('deviceId')) {
           return MaterialPageRoute(
-            builder: (_) => DeviceDetailPage(
-              deviceId: args['deviceId']!,
-              deviceName: args['deviceName']!,
+            builder: (_) => Scaffold(
+              body: Center(
+                child: Text('Error: Device ID not provided'),
+              ),
             ),
           );
         }
-        return _errorRoute();
+        return MaterialPageRoute(
+          builder: (_) => Dashboard(),
+          settings: settings,
+        );
+
+      case '/server':
+        return MaterialPageRoute(builder: (_) => ServerPage());
+
+      case '/login':
+        return MaterialPageRoute(builder: (_) => LoginPage());
+
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(
-            appBar: AppBar(title: Text('Hata')),
-            body: Center(child: Text('Sayfa bulunamadı')),
+            body: Center(
+              child: Text('Route ${settings.name} not found'),
+            ),
           ),
         );
     }
-  }
-
-  static Route<dynamic> _errorRoute() {
-    return MaterialPageRoute(
-      builder: (_) => Scaffold(
-        appBar: AppBar(title: Text('Hata')),
-        body: Center(child: Text('Sayfa bulunamadı')),
-      ),
-    );
   }
 }

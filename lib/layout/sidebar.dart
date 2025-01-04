@@ -20,17 +20,32 @@ class _SidebarState extends State<Sidebar> {
   @override
   void initState() {
     super.initState();
-    activeRoute = widget.currentRoute;
+    _updateActiveRoute();
   }
 
   @override
-  void didUpdateWidget(Sidebar oldWidget) {
+  void didUpdateWidget(covariant Sidebar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.currentRoute != oldWidget.currentRoute) {
-      setState(() {
-        activeRoute = widget.currentRoute;
-      });
+    if (oldWidget.currentRoute != widget.currentRoute) {
+      _updateActiveRoute();
     }
+  }
+
+  void _updateActiveRoute() {
+    setState(() {
+      activeRoute = _normalizeRoute(widget.currentRoute);
+    });
+  }
+
+  String _normalizeRoute(String route) {
+    if (route.startsWith('/settings')) {
+      return '/settings';
+    }
+    return route;
+  }
+
+  bool _isActive(String route) {
+    return _normalizeRoute(route) == activeRoute;
   }
 
   @override
@@ -123,7 +138,7 @@ class _SidebarState extends State<Sidebar> {
 
     return menuItems.map((item) {
       final bool isActive =
-          item['showActive'] != false && activeRoute == item['route'];
+          item['showActive'] != false && _isActive(item['route'] as String);
 
       return Container(
         margin: EdgeInsets.symmetric(horizontal: 8, vertical: 2),

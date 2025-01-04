@@ -69,7 +69,10 @@ class _ServerPage extends State<ServerPage> {
   Future<void> _deleteSelectedDevices() async {
     try {
       for (var index in _selectedDevices) {
-        await _serverService.deleteDevice(_devices[index].id);
+        final deviceId = _devices[index].id;
+        if (deviceId != null) {
+          await _serverService.deleteDevice(deviceId);
+        }
       }
       _selectedDevices.clear();
       _loadDevices(); // Refresh the list
@@ -90,6 +93,13 @@ class _ServerPage extends State<ServerPage> {
   }
 
   void _showAddDeviceDialog() {
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController ipAddressController = TextEditingController();
+    String selectedType = 'Physical Server';
+    String selectedOS = 'Windows Server';
+    String selectedStatus = 'Active';
+    String selectedHealthStatus = 'Good';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -99,6 +109,7 @@ class _ServerPage extends State<ServerPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
+                controller: nameController,
                 decoration: InputDecoration(
                   labelText: 'Cihaz Adı',
                   border: OutlineInputBorder(),
@@ -110,13 +121,76 @@ class _ServerPage extends State<ServerPage> {
                   labelText: 'Cihaz Tipi',
                   border: OutlineInputBorder(),
                 ),
-                items: ['Laptop', 'Desktop']
+                value: selectedType,
+                items: ['Physical Server', 'Virtual Machine', 'Database Server']
                     .map((type) => DropdownMenuItem(
                           value: type,
                           child: Text(type),
                         ))
                     .toList(),
-                onChanged: (value) {},
+                onChanged: (value) {
+                  selectedType = value!;
+                },
+              ),
+              SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'İşletim Sistemi',
+                  border: OutlineInputBorder(),
+                ),
+                value: selectedOS,
+                items: ['Windows Server', 'Linux Server', 'MacOS Server']
+                    .map((os) => DropdownMenuItem(
+                          value: os,
+                          child: Text(os),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  selectedOS = value!;
+                },
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: ipAddressController,
+                decoration: InputDecoration(
+                  labelText: 'IP Adresi',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'Çalışma Durumu',
+                  border: OutlineInputBorder(),
+                ),
+                value: selectedStatus,
+                items: ['Active', 'Inactive']
+                    .map((status) => DropdownMenuItem(
+                          value: status,
+                          child: Text(
+                              status == 'Active' ? 'Çalışıyor' : 'Çalışmıyor'),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  selectedStatus = value!;
+                },
+              ),
+              SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'Sağlık Durumu',
+                  border: OutlineInputBorder(),
+                ),
+                value: selectedHealthStatus,
+                items: ['Good', 'Requires Check', 'Critical']
+                    .map((status) => DropdownMenuItem(
+                          value: status,
+                          child: Text(status),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  selectedHealthStatus = value!;
+                },
               ),
             ],
           ),
@@ -128,7 +202,27 @@ class _ServerPage extends State<ServerPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              // TODO: Implement device addition
+              if (nameController.text.isEmpty ||
+                  ipAddressController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Tüm alanları doldurunuz'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              final newDevice = DeviceDTO(
+                name: nameController.text,
+                type: selectedType,
+                operatingSystem: selectedOS,
+                ipAddress: ipAddressController.text,
+                status: selectedStatus,
+                healthStatus: selectedHealthStatus,
+              );
+
+              _addDevice(newDevice);
               Navigator.pop(context);
             },
             child: Text('Ekle'),
@@ -213,14 +307,17 @@ class _ServerPage extends State<ServerPage> {
                                 });
                               },
                               onDoubleTap: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  '/dashboard',
-                                  arguments: {
-                                    'deviceId': device.id.toString(),
-                                    'deviceName': device.name,
-                                  },
-                                );
+                                if (device.id != null) {
+                                  print('\n=== Navigating to Dashboard ===');
+                                  print('Device ID: ${device.id}');
+                                  Navigator.pushNamed(
+                                    context,
+                                    '/dashboard',
+                                    arguments: {
+                                      'deviceId': device.id.toString(),
+                                    },
+                                  );
+                                }
                               },
                               child: DeviceCard(
                                 deviceName: device.name,
@@ -243,6 +340,7 @@ class _ServerPage extends State<ServerPage> {
                                     }
                                   });
                                 },
+                                deviceId: device.id.toString(),
                               ),
                             );
                           },
@@ -320,16 +418,16 @@ class _ServerPage extends State<ServerPage> {
           ),
           items: [
             DropdownMenuItem(
-              value: 'status',
+              value: 'criticality',
               child: Text(
                 'Kritik Duruma Göre',
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             DropdownMenuItem(
-              value: 'resource',
+              value: 'status',
               child: Text(
-                'Kaynak Kullanımına Göre',
+                'Duruma Göre',
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -341,29 +439,38 @@ class _ServerPage extends State<ServerPage> {
               ),
             ),
           ],
-          onChanged: (value) {
+          onChanged: (value) async {
             setState(() {
               _sortBy = value!;
-              switch (_sortBy) {
-                case 'status':
-                  _devices.sort((a, b) => _getDeviceCriticality(b)
-                      .compareTo(_getDeviceCriticality(a)));
-                  break;
-                case 'resource':
-                  _devices.sort((a, b) => (b.resourceUsage.cpuUsage +
-                          b.resourceUsage.ramUsage)
-                      .compareTo(
-                          a.resourceUsage.cpuUsage + a.resourceUsage.ramUsage));
-                  break;
-                case 'name':
-                  _devices.sort((a, b) => a.name.compareTo(b.name));
-                  break;
-              }
             });
+            await _loadDevicesOrdered(_sortBy);
           },
         ),
       ),
     );
+  }
+
+  Future<void> _loadDevicesOrdered(String orderBy) async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      final devices = await _serverService.getDevicesOrdered(orderBy);
+      setState(() {
+        _devices = devices;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Cihazlar sıralanırken hata oluştu: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   int _getDeviceCriticality(DeviceDTO device) {
@@ -382,7 +489,7 @@ class _ServerPage extends State<ServerPage> {
       case 'good':
         return Colors.green;
       case 'requires check':
-        return Colors.yellow;
+        return Color(0xFFFFC107);
       case 'critical':
         return Colors.red;
       default:

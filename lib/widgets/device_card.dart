@@ -9,6 +9,7 @@ class DeviceCard extends StatelessWidget {
   final Color borderColor;
   final bool isSelected;
   final VoidCallback onSelect;
+  final String deviceId;
 
   const DeviceCard({
     Key? key,
@@ -20,42 +21,52 @@ class DeviceCard extends StatelessWidget {
     required this.borderColor,
     required this.isSelected,
     required this.onSelect,
+    required this.deviceId,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final cardColor = isSelected ? Colors.blue : borderColor;
 
-    return Container(
-      height: 120,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: cardColor,
-          width: 2.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: Offset(0, 2),
+    return GestureDetector(
+      onTap: onSelect,
+      onDoubleTap: () {
+        print('\n=== DeviceCard Navigation ===');
+        print('Device ID: $deviceId');
+        Navigator.pushNamed(
+          context,
+          '/dashboard',
+          arguments: {'deviceId': deviceId},
+        );
+      },
+      child: Container(
+        height: 120,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: cardColor,
+            width: 2.5,
           ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: Row(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
                         child: Column(
@@ -101,12 +112,7 @@ class DeviceCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                ),
-                SizedBox(height: 8),
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -136,28 +142,28 @@ class DeviceCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-          ),
-          if (isSelected)
-            Positioned(
-              top: 6,
-              right: 6,
-              child: Container(
-                padding: EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check,
-                  size: 12,
-                  color: Colors.white,
-                ),
+                ],
               ),
             ),
-        ],
+            if (isSelected)
+              Positioned(
+                top: 6,
+                right: 6,
+                child: Container(
+                  padding: EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.check,
+                    size: 12,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'api_endpoints.dart';
 import 'package:dio/io.dart';
-import 'dart:io';
 
 class DioClient {
   late Dio _dio;

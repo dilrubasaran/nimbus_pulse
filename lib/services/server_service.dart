@@ -84,12 +84,13 @@ class ServerService {
   Future<bool> deleteDevice(int deviceId) async {
     try {
       print('\n=== Deleting Device ===');
-      final response = await _dioClient.delete(
-        '${ApiEndpoints.devices}/$deviceId',
-      );
+      final response = await _dioClient.delete('/Device/$deviceId');
 
       print('Response Status: ${response.statusCode}');
-      return response.statusCode == 204;
+      if (response.statusCode == 204 || response.statusCode == 200) {
+        return true;
+      }
+      throw Exception('Failed to delete device');
     } catch (e) {
       print('\n=== Delete Device Error ===');
       print('Error Details: $e');
@@ -132,6 +133,17 @@ class ServerService {
       print('\n=== Restart Device Error ===');
       print('Error Details: $e');
       rethrow;
+    }
+  }
+
+  Future<List<DeviceDTO>> getDevicesOrdered(String orderBy) async {
+    try {
+      final response = await _dioClient.get('/Device/order/$orderBy');
+      return (response.data as List)
+          .map((json) => DeviceDTO.fromJson(json))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to load ordered devices: $e');
     }
   }
 }

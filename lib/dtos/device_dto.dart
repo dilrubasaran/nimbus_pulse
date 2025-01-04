@@ -1,5 +1,5 @@
 class DeviceDTO {
-  final int id;
+  final int? id;
   final String name;
   final String type;
   final String operatingSystem;
@@ -9,7 +9,7 @@ class DeviceDTO {
   final ResourceUsage resourceUsage;
 
   DeviceDTO({
-    required this.id,
+    this.id,
     required this.name,
     required this.type,
     required this.operatingSystem,
@@ -38,8 +38,7 @@ class DeviceDTO {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
+    final Map<String, dynamic> data = {
       'name': name,
       'type': type,
       'operatingSystem': operatingSystem,
@@ -47,6 +46,13 @@ class DeviceDTO {
       'status': status,
       'healthStatus': healthStatus,
     };
+
+    // Sadece id varsa ekle (güncelleme durumları için)
+    if (id != null) {
+      data['id'] = id;
+    }
+
+    return data;
   }
 }
 

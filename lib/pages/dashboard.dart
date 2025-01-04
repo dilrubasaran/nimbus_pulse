@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:nimbus_pulse/layout/main_layout.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
+import '../layout/main_layout.dart';
+import '../services/device_details_service.dart';
+import '../dtos/device_details_dto.dart';
+import '../core/network/dio_client.dart';
 import '../styles/consts.dart';
+
+class ResourceData {
+  final double time;
+  final double value;
+
+  ResourceData(this.time, this.value);
+}
 
 class Dashboard extends StatefulWidget {
   @override
@@ -10,67 +20,106 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  late List<ResourceData> cpuData;
-  late List<ResourceData> ramData;
-  late List<ResourceData> diskData;
+  late DeviceDetailsService _deviceDetailsService;
+  DeviceDetailsDTO? _deviceDetails;
+  bool _isLoading = true;
+  String? _error;
+  bool _isInitialized = false;
   late TooltipBehavior tooltipBehavior;
 
   @override
   void initState() {
     super.initState();
+    _deviceDetailsService = DeviceDetailsService(DioClient());
     tooltipBehavior = TooltipBehavior(enable: true);
-    _initializeData();
   }
 
-  void _initializeData() {
-    // Örnek veri
-    cpuData = List.generate(
-      24,
-      (index) => ResourceData(
-        index.toDouble(),
-        45 + (index % 3) * 10.0,
-      ),
-    );
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _loadDeviceDetails();
+      _isInitialized = true;
+    }
+  }
 
-    ramData = List.generate(
-      24,
-      (index) => ResourceData(
-        index.toDouble(),
-        65 + (index % 4) * 5.0,
-      ),
-    );
+  Future<void> _loadDeviceDetails() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
 
-    diskData = List.generate(
-      24,
-      (index) => ResourceData(
-        index.toDouble(),
-        45 + (index % 5) * 8.0,
-      ),
-    );
+      final args = ModalRoute.of(context)?.settings.arguments;
+      print('\n=== Dashboard Arguments ===');
+      print('Raw Args: $args');
+
+      if (args == null) {
+        throw Exception('No arguments provided');
+      }
+
+      final Map<String, dynamic> argsMap = args as Map<String, dynamic>;
+      print('Args Map: $argsMap');
+
+      if (!argsMap.containsKey('deviceId')) {
+        throw Exception('Device ID not found in arguments');
+      }
+
+      final deviceId = argsMap['deviceId'].toString();
+      print('Device ID: $deviceId');
+
+      final details = await _deviceDetailsService.getDeviceDetails(deviceId);
+
+      if (mounted) {
+        setState(() {
+          _deviceDetails = details;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading device details: $e');
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // Son güncelleme tarihini formatlayan yardımcı metod
+  String _formatDateTime(DateTime dateTime) {
+    return '${dateTime.day.toString().padLeft(2, '0')}.${dateTime.month.toString().padLeft(2, '0')}.${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDeviceInfo(),
-            SizedBox(height: 24),
-            _buildResourceGauges(),
-            SizedBox(height: 24),
-            _buildResourceCharts(),
-            SizedBox(height: 24),
-            _buildRunningApplications(),
-          ],
-        ),
-      ),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(child: Text(_error!))
+              : SingleChildScrollView(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildDeviceInfo(),
+                      SizedBox(height: 24),
+                      _buildResourceGauges(),
+                      SizedBox(height: 24),
+                      _buildResourceCharts(),
+                      SizedBox(height: 24),
+                      _buildRunningApplications(),
+                    ],
+                  ),
+                ),
     );
   }
 
   Widget _buildDeviceInfo() {
+    if (_deviceDetails == null) return SizedBox();
+
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -84,16 +133,46 @@ class _DashboardState extends State<Dashboard> {
           ),
         ],
       ),
-      child: Wrap(
-        spacing: 16,
-        runSpacing: 16,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoChip(Icons.computer, "Mac Pro 16 inc"),
-          _buildInfoChip(Icons.laptop, "Laptop"),
-          _buildInfoChip(Icons.memory, "İyi"),
-          _buildInfoChip(Icons.wifi, "192.168.1.1"),
-          _buildInfoChip(Icons.computer_outlined, "Windows 11 Pro"),
-          _buildInfoChip(Icons.access_time, "Son Güncelleme: 12.01.2024 15:30"),
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            children: [
+              _buildInfoChip(Icons.computer, _deviceDetails!.name),
+              _buildInfoChip(Icons.laptop, _deviceDetails!.type),
+              _buildInfoChip(Icons.memory, _deviceDetails!.healthStatus),
+              _buildInfoChip(Icons.wifi, _deviceDetails!.ipAddress),
+              _buildInfoChip(
+                  Icons.computer_outlined, _deviceDetails!.operatingSystem),
+            ],
+          ),
+          SizedBox(height: 16),
+          Row(
+            children: [
+              Icon(Icons.access_time, color: Colors.blue, size: 16),
+              SizedBox(width: 8),
+              Text(
+                "Son Güncelleme:",
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: fontNunitoSans,
+                ),
+              ),
+              SizedBox(width: 8),
+              Text(
+                _formatDateTime(_deviceDetails!.lastReportDate),
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: fontNunitoSans,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 16),
           Container(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
@@ -147,6 +226,8 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _buildResourceGauges() {
+    if (_deviceDetails == null) return SizedBox();
+
     return LayoutBuilder(
       builder: (context, constraints) {
         double gaugeSize = constraints.maxWidth > 900
@@ -159,9 +240,24 @@ class _DashboardState extends State<Dashboard> {
           spacing: 16,
           runSpacing: 16,
           children: [
-            _buildGauge("RAM", 0.65, Colors.amber, gaugeSize),
-            _buildGauge("CPU", 0.45, Colors.blue, gaugeSize),
-            _buildGauge("Disk", 0.45, Colors.purple, gaugeSize),
+            _buildGauge(
+              "RAM",
+              _deviceDetails!.resourceUsage.currentRamUsage / 100,
+              Colors.amber,
+              gaugeSize,
+            ),
+            _buildGauge(
+              "CPU",
+              _deviceDetails!.resourceUsage.currentCpuUsage / 100,
+              Colors.blue,
+              gaugeSize,
+            ),
+            _buildGauge(
+              "Disk",
+              _deviceDetails!.resourceUsage.currentDiskUsage / 100,
+              Colors.purple,
+              gaugeSize,
+            ),
           ],
         );
       },
@@ -247,189 +343,126 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _buildResourceCharts() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Column(
-          children: [
-            Container(
-              height: 300,
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: bgPrimaryColor,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
+    if (_deviceDetails == null) return SizedBox();
+
+    final cpuData = _deviceDetails!.resourceUsage.cpuHistory
+        .asMap()
+        .entries
+        .map((e) => ResourceData(e.key.toDouble(), e.value))
+        .toList();
+
+    final ramData = _deviceDetails!.resourceUsage.ramHistory
+        .asMap()
+        .entries
+        .map((e) => ResourceData(e.key.toDouble(), e.value))
+        .toList();
+
+    return Column(
+      children: [
+        Container(
+          height: 200,
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: bgPrimaryColor,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: Offset(0, 4),
               ),
-              child: SfCartesianChart(
-                title: ChartTitle(
-                  text:
-                      'CPU - RAM Gerçek Zamanlı İzleme (6 saatlik durum tahmini)',
-                  textStyle: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: primaryTextColor,
-                    fontFamily: fontNunitoSans,
-                  ),
-                ),
-                legend: Legend(isVisible: true),
-                tooltipBehavior: tooltipBehavior,
-                primaryXAxis: NumericAxis(
-                  labelStyle: TextStyle(
-                    color: secondaryTextColor,
-                    fontFamily: fontNunitoSans,
-                  ),
-                ),
-                primaryYAxis: NumericAxis(
-                  minimum: 0,
-                  maximum: 100,
-                  title: AxisTitle(
-                    text: 'Kullanım %',
-                    textStyle: TextStyle(
-                      color: secondaryTextColor,
-                      fontFamily: fontNunitoSans,
-                    ),
-                  ),
-                  labelStyle: TextStyle(
-                    color: secondaryTextColor,
-                    fontFamily: fontNunitoSans,
-                  ),
-                ),
-                series: <ChartSeries>[
-                  LineSeries<ResourceData, double>(
-                    name: 'CPU',
-                    dataSource: cpuData,
-                    xValueMapper: (ResourceData data, _) => data.time,
-                    yValueMapper: (ResourceData data, _) => data.value,
-                    color: Colors.blue,
-                  ),
-                  LineSeries<ResourceData, double>(
-                    name: 'RAM',
-                    dataSource: ramData,
-                    xValueMapper: (ResourceData data, _) => data.time,
-                    yValueMapper: (ResourceData data, _) => data.value,
-                    color: Colors.amber,
-                  ),
-                ],
+            ],
+          ),
+          child: SfCartesianChart(
+            title: ChartTitle(
+              text: 'CPU Dağılımı',
+              textStyle: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: primaryTextColor,
+                fontFamily: fontNunitoSans,
               ),
             ),
-            SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 200,
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: bgPrimaryColor,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: SfCartesianChart(
-                      title: ChartTitle(
-                        text: 'CPU Dağılımı',
-                        textStyle: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: primaryTextColor,
-                          fontFamily: fontNunitoSans,
-                        ),
-                      ),
-                      primaryXAxis: NumericAxis(
-                        labelStyle: TextStyle(
-                          color: secondaryTextColor,
-                          fontFamily: fontNunitoSans,
-                        ),
-                      ),
-                      primaryYAxis: NumericAxis(
-                        minimum: 0,
-                        maximum: 100,
-                        labelStyle: TextStyle(
-                          color: secondaryTextColor,
-                          fontFamily: fontNunitoSans,
-                        ),
-                      ),
-                      series: <ChartSeries>[
-                        LineSeries<ResourceData, double>(
-                          dataSource: cpuData,
-                          xValueMapper: (ResourceData data, _) => data.time,
-                          yValueMapper: (ResourceData data, _) => data.value,
-                          color: Colors.blue,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: Container(
-                    height: 200,
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: bgPrimaryColor,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: SfCartesianChart(
-                      title: ChartTitle(
-                        text: 'RAM Dağılımı',
-                        textStyle: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: primaryTextColor,
-                          fontFamily: fontNunitoSans,
-                        ),
-                      ),
-                      primaryXAxis: NumericAxis(
-                        labelStyle: TextStyle(
-                          color: secondaryTextColor,
-                          fontFamily: fontNunitoSans,
-                        ),
-                      ),
-                      primaryYAxis: NumericAxis(
-                        minimum: 0,
-                        maximum: 100,
-                        labelStyle: TextStyle(
-                          color: secondaryTextColor,
-                          fontFamily: fontNunitoSans,
-                        ),
-                      ),
-                      series: <ChartSeries>[
-                        LineSeries<ResourceData, double>(
-                          dataSource: ramData,
-                          xValueMapper: (ResourceData data, _) => data.time,
-                          yValueMapper: (ResourceData data, _) => data.value,
-                          color: Colors.amber,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+            primaryXAxis: NumericAxis(
+              labelStyle: TextStyle(
+                color: secondaryTextColor,
+                fontFamily: fontNunitoSans,
+              ),
             ),
-          ],
-        );
-      },
+            primaryYAxis: NumericAxis(
+              minimum: 0,
+              maximum: 100,
+              labelStyle: TextStyle(
+                color: secondaryTextColor,
+                fontFamily: fontNunitoSans,
+              ),
+            ),
+            series: <ChartSeries>[
+              LineSeries<ResourceData, double>(
+                dataSource: cpuData,
+                xValueMapper: (ResourceData data, _) => data.time,
+                yValueMapper: (ResourceData data, _) => data.value,
+                color: Colors.blue,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 16),
+        Container(
+          height: 200,
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: bgPrimaryColor,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: SfCartesianChart(
+            title: ChartTitle(
+              text: 'RAM Dağılımı',
+              textStyle: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: primaryTextColor,
+                fontFamily: fontNunitoSans,
+              ),
+            ),
+            primaryXAxis: NumericAxis(
+              labelStyle: TextStyle(
+                color: secondaryTextColor,
+                fontFamily: fontNunitoSans,
+              ),
+            ),
+            primaryYAxis: NumericAxis(
+              minimum: 0,
+              maximum: 100,
+              labelStyle: TextStyle(
+                color: secondaryTextColor,
+                fontFamily: fontNunitoSans,
+              ),
+            ),
+            series: <ChartSeries>[
+              LineSeries<ResourceData, double>(
+                dataSource: ramData,
+                xValueMapper: (ResourceData data, _) => data.time,
+                yValueMapper: (ResourceData data, _) => data.value,
+                color: Colors.amber,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildRunningApplications() {
+    if (_deviceDetails == null) return SizedBox();
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWebView = constraints.maxWidth > 1200;
@@ -440,7 +473,7 @@ class _DashboardState extends State<Dashboard> {
             children: [
               Expanded(
                 flex: 2,
-                child: _buildRunningAppsTable(),
+                child: _buildBackgroundAppsTable(),
               ),
               SizedBox(width: 24),
               Expanded(
@@ -454,7 +487,7 @@ class _DashboardState extends State<Dashboard> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildRunningAppsTable(),
+            _buildBackgroundAppsTable(),
             SizedBox(height: 24),
             _buildActiveAppsGrid(),
           ],
@@ -463,7 +496,7 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  Widget _buildRunningAppsTable() {
+  Widget _buildBackgroundAppsTable() {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -490,48 +523,138 @@ class _DashboardState extends State<Dashboard> {
             ),
           ),
           SizedBox(height: 16),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Theme(
-              data: Theme.of(context).copyWith(
-                dataTableTheme: DataTableThemeData(
-                  headingTextStyle: TextStyle(
-                    color: primaryTextColor,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: fontNunitoSans,
-                  ),
-                  dataTextStyle: TextStyle(
-                    color: secondaryTextColor,
-                    fontFamily: fontNunitoSans,
+          Table(
+            columnWidths: const {
+              0: FlexColumnWidth(3),
+              1: FlexColumnWidth(2),
+              2: FlexColumnWidth(1),
+              3: FlexColumnWidth(1),
+            },
+            children: [
+              TableRow(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.grey.withOpacity(0.2),
+                      width: 1,
+                    ),
                   ),
                 ),
-              ),
-              child: DataTable(
-                columns: [
-                  DataColumn(label: Text("Uygulama İsmi")),
-                  DataColumn(label: Text("Çalışma Süresi")),
-                  DataColumn(label: Text("Cpu")),
-                  DataColumn(label: Text("Ram")),
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      'Uygulama İsmi',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        fontFamily: fontNunitoSans,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      'Çalışma Süresi',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        fontFamily: fontNunitoSans,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      'CPU',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        fontFamily: fontNunitoSans,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      'RAM',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        fontFamily: fontNunitoSans,
+                      ),
+                    ),
+                  ),
                 ],
-                rows: List.generate(
-                  10,
-                  (index) => DataRow(
-                    cells: [
-                      DataCell(Text("Intel(R) Dynamic App")),
-                      DataCell(Text("7 saat 30 dk")),
-                      DataCell(Text("0,1")),
-                      DataCell(Text("25,6")),
-                    ],
+              ),
+              ..._deviceDetails!.backgroundApplications.map(
+                (app) => TableRow(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Colors.grey.withOpacity(0.1),
+                        width: 1,
+                      ),
+                    ),
                   ),
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        app.name,
+                        style: TextStyle(
+                          color: Colors.blue[200],
+                          fontSize: 14,
+                          fontFamily: fontNunitoSans,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        app.runningTime,
+                        style: TextStyle(
+                          color: Colors.blue[200],
+                          fontSize: 14,
+                          fontFamily: fontNunitoSans,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        app.cpuUsage.toStringAsFixed(1),
+                        style: TextStyle(
+                          color: Colors.blue[200],
+                          fontSize: 14,
+                          fontFamily: fontNunitoSans,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        app.ramUsage.toStringAsFixed(1),
+                        style: TextStyle(
+                          color: Colors.blue[200],
+                          fontSize: 14,
+                          fontFamily: fontNunitoSans,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),
     );
   }
-//Arka Planda Çalışan Uygulamalar Tablosu
 
   Widget _buildActiveAppsGrid() {
     return Container(
@@ -571,8 +694,9 @@ class _DashboardState extends State<Dashboard> {
               return Wrap(
                 spacing: 16,
                 runSpacing: 16,
-                children:
-                    List.generate(9, (index) => _buildActiveAppCard(cardWidth)),
+                children: _deviceDetails!.activeApplications
+                    .map((app) => _buildActiveAppCard(cardWidth, app))
+                    .toList(),
               );
             },
           ),
@@ -581,13 +705,18 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  //Aktif Uygulama Kart yapısı
-  Widget _buildActiveAppCard(double width) {
-    // Son 8 veri noktası için örnek veri oluştur
-    final sampleData = List.generate(
-        8, (index) => ResourceData(index.toDouble(), 45 + (index % 3) * 10.0));
-    final sampleRamData = List.generate(
-        8, (index) => ResourceData(index.toDouble(), 65 + (index % 4) * 5.0));
+  Widget _buildActiveAppCard(double width, ActiveAppDTO app) {
+    final cpuData = app.cpuHistory
+        .asMap()
+        .entries
+        .map((e) => ResourceData(e.key.toDouble(), e.value))
+        .toList();
+
+    final ramData = app.ramHistory
+        .asMap()
+        .entries
+        .map((e) => ResourceData(e.key.toDouble(), e.value))
+        .toList();
 
     return Container(
       width: width,
@@ -615,7 +744,7 @@ class _DashboardState extends State<Dashboard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Visual Studio",
+                      app.name,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -624,7 +753,7 @@ class _DashboardState extends State<Dashboard> {
                       ),
                     ),
                     Text(
-                      "5 saat 30 dk ",
+                      app.runningTime,
                       style: TextStyle(
                         fontSize: 12,
                         color: secondaryTextColor,
@@ -680,7 +809,7 @@ class _DashboardState extends State<Dashboard> {
                         ),
                         Spacer(),
                         Text(
-                          "45%",
+                          "${app.cpuUsage.toStringAsFixed(1)}%",
                           style: TextStyle(
                             fontSize: 12,
                             color: primaryTextColor,
@@ -700,7 +829,7 @@ class _DashboardState extends State<Dashboard> {
                         plotAreaBorderWidth: 0,
                         series: <ChartSeries>[
                           SplineAreaSeries<ResourceData, double>(
-                            dataSource: sampleData,
+                            dataSource: cpuData,
                             xValueMapper: (ResourceData data, _) => data.time,
                             yValueMapper: (ResourceData data, _) => data.value,
                             color: Colors.blue.withOpacity(0.2),
@@ -739,7 +868,7 @@ class _DashboardState extends State<Dashboard> {
                         ),
                         Spacer(),
                         Text(
-                          "65%",
+                          "${app.ramUsage.toStringAsFixed(1)}%",
                           style: TextStyle(
                             fontSize: 12,
                             color: primaryTextColor,
@@ -759,7 +888,7 @@ class _DashboardState extends State<Dashboard> {
                         plotAreaBorderWidth: 0,
                         series: <ChartSeries>[
                           SplineAreaSeries<ResourceData, double>(
-                            dataSource: sampleRamData,
+                            dataSource: ramData,
                             xValueMapper: (ResourceData data, _) => data.time,
                             yValueMapper: (ResourceData data, _) => data.value,
                             color: Colors.amber.withOpacity(0.2),
@@ -778,11 +907,4 @@ class _DashboardState extends State<Dashboard> {
       ),
     );
   }
-}
-
-class ResourceData {
-  final double time;
-  final double value;
-
-  ResourceData(this.time, this.value);
 }
