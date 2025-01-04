@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class UserService {
   static const String baseUrl =
-      'http://localhost:5000/api'; // .NET Core API base URL
+      'https://localhost:7185/api/user'; // .NET Core API base URL
 
   static Future<bool> register(
       String email, String username, String password) async {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nimbus_pulse/services/user_service.dart';
+import '../services/register_service.dart';
+import '../dtos/register_dto.dart';
+import '../core/network/dio_client.dart';
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -114,7 +116,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               _buildTextField(
                                 'Phone Number',
                                 _phoneController,
-                                '+90 XXX XXX XX XX',
+                                '530 555 55 55',
                               ),
                               _buildTextField(
                                 'Company Name',
@@ -171,6 +173,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ],
                           ),
                           SizedBox(height: 24),
+
                           // Sign Up Button
                           SizedBox(
                             width: double.infinity,
@@ -294,38 +297,61 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  void _register() {
+  void _register() async {
     if (_formKey.currentState!.validate()) {
       if (_passwordController.text != _confirmPasswordController.text) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Passwords do not match')),
+          SnackBar(
+            content: Text('Passwords do not match'),
+            backgroundColor: Colors.red,
+          ),
         );
         return;
       }
 
-      final userData = {
-        'firstName': _firstNameController.text,
-        'lastName': _lastNameController.text,
-        'email': _emailController.text,
-        'phone': _phoneController.text,
-        'company': _companyController.text,
-        'password': _passwordController.text,
-      };
+      try {
+        print('\nPreparing registration data...');
+        final registerDTO = RegisterDTO(
+          name: _firstNameController.text,
+          surname: _lastNameController.text,
+          email: _emailController.text,
+          phoneNumber: _phoneController.text,
+          companyName: _companyController.text,
+          password: _passwordController.text,
+        );
 
-      // API call will be updated to include new fields
-      UserService.register(
-        userData['email']!,
-        '${userData['firstName']} ${userData['lastName']}',
-        userData['password']!,
-      ).then((success) {
+        print('Creating RegisterService...');
+        final registerService = RegisterService(DioClient());
+
+        print('Calling register method...');
+        final success = await registerService.register(registerDTO);
+        print('Register method returned: $success');
+
         if (success) {
-          Navigator.pushReplacementNamed(context, '/login');
-        } else {
+          print('Registration successful, navigating to server page...');
+          Navigator.pushReplacementNamed(context, '/server');
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Registration failed. Please try again.')),
+            SnackBar(
+              content: Text('Registration successful!'),
+              backgroundColor: Colors.green,
+            ),
           );
         }
-      });
+      } catch (e) {
+        print('Registration error caught: $e');
+        String errorMessage = e.toString();
+        // "Exception: " prefix'ini kaldır
+        if (errorMessage.startsWith('Exception: ')) {
+          errorMessage = errorMessage.substring('Exception: '.length);
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            duration: Duration(seconds: 5),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
