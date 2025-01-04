@@ -66,57 +66,54 @@ class _SidebarState extends State<Sidebar> {
       showText = true;
     }
 
-    return Container(
-      width: sidebarWidth,
-      color: bgPrimaryColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (showText)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  SvgPicture.asset(
-                    'assets/images/nimbuspulse_logo.svg',
-                    width: 64,
-                    height: 64,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    "Welcome",
-                    style: TextStyle(fontSize: 12, color: primaryTextColor),
-                  ),
-                  Text(
-                    "Dilruba Başaran",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: primaryTextColor,
+    return SafeArea(
+      child: Container(
+        width: sidebarWidth,
+        color: bgPrimaryColor,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (showText)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    SvgPicture.asset(
+                      'assets/images/nimbuspulse_logo.svg',
+                      width: 64,
+                      height: 64,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    Text(
+                      "Welcome",
+                      style: TextStyle(fontSize: 12, color: primaryTextColor),
+                    ),
+                    Text(
+                      "Dilruba Başaran",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: primaryTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (showText) const Divider(color: secondaryTextColor),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                children: _buildMenuItems(showText),
               ),
             ),
-          if (showText) const Divider(color: secondaryTextColor),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              children: _buildMenuItems(showText),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   List<Widget> _buildMenuItems(bool showText) {
     final menuItems = [
-      {
-        'icon': Icons.dashboard_outlined,
-        'title': 'Dashboard',
-        'route': '/dashboard'
-      },
       {'icon': Icons.computer_outlined, 'title': 'Server', 'route': '/server'},
       {
         'icon': Icons.bar_chart_outlined,

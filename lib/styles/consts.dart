@@ -6,6 +6,7 @@ const Color secondaryColor = Colors.grey; // İkincil renk
 const Color backgroundColor = Colors.white; // Arkaplan rengi
 // Renkler
 const Color bgPrimaryColor = Color(0xFFEFF8FF);
+const Color bgSecondaryColor = Color(0xFFF8FBFF);
 const Color primaryTextColor = Color(0xFF177EC6);
 const Color secondaryTextColor = Color(0xFF8CC7F4);
 
