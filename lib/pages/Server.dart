@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../layout/main_layout.dart';
 import '../widgets/device_card.dart';
+import '../services/server_service.dart';
+import '../dtos/device_dto.dart';
+import '../core/network/dio_client.dart';
 
 class ServerPage extends StatefulWidget {
   @override
@@ -10,6 +13,81 @@ class ServerPage extends StatefulWidget {
 class _ServerPage extends State<ServerPage> {
   String _sortBy = 'status';
   List<int> _selectedDevices = [];
+  final ServerService _serverService = ServerService(DioClient());
+  List<DeviceDTO> _devices = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDevices();
+  }
+
+  Future<void> _loadDevices() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      final devices = await _serverService.getDevices();
+      setState(() {
+        _devices = devices;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Cihazlar yüklenirken hata oluştu: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _addDevice(DeviceDTO device) async {
+    try {
+      await _serverService.addDevice(device);
+      _loadDevices(); // Refresh the list
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Cihaz başarıyla eklendi'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Cihaz eklenirken hata oluştu: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteSelectedDevices() async {
+    try {
+      for (var index in _selectedDevices) {
+        await _serverService.deleteDevice(_devices[index].id);
+      }
+      _selectedDevices.clear();
+      _loadDevices(); // Refresh the list
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Seçili cihazlar başarıyla silindi'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Cihazlar silinirken hata oluştu: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   void _showAddDeviceDialog() {
     showDialog(
@@ -50,7 +128,7 @@ class _ServerPage extends State<ServerPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              // API call to add device
+              // TODO: Implement device addition
               Navigator.pop(context);
             },
             child: Text('Ekle'),
@@ -65,7 +143,6 @@ class _ServerPage extends State<ServerPage> {
     return MainLayout(
       body: Column(
         children: [
-          // Device Management Buttons
           Container(
             padding: EdgeInsets.all(16),
             child: Row(
@@ -83,9 +160,7 @@ class _ServerPage extends State<ServerPage> {
                       _buildActionButton(
                         icon: Icons.remove_circle_outline,
                         text: "Cihaz Kaldır",
-                        onTap: () {
-                          // API call to remove devices
-                        },
+                        onTap: _deleteSelectedDevices,
                         color: Colors.red,
                       ),
                   ],
@@ -94,104 +169,94 @@ class _ServerPage extends State<ServerPage> {
               ],
             ),
           ),
-          // Devices Grid
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // Kart genişliği
-                  const cardWidth = 160;
-                  // Ekran genişliğine göre sütun sayısını hesapla
-                  int crossAxisCount =
-                      (constraints.maxWidth / cardWidth).floor();
+            child: _isLoading
+                ? Center(child: CircularProgressIndicator())
+                : Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        const cardWidth = 160;
+                        int crossAxisCount =
+                            (constraints.maxWidth / cardWidth).floor();
+                        if (crossAxisCount > 7) crossAxisCount = 7;
+                        if (crossAxisCount < 2) crossAxisCount = 2;
 
-                  // En fazla 7 kart sığacak
-                  if (crossAxisCount > 7) crossAxisCount = 7;
+                        return GridView.builder(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: cardWidth / 120,
+                          ),
+                          itemCount: _devices.length,
+                          itemBuilder: (context, index) {
+                            final device = _devices[index];
+                            String serverStatus;
+                            Color borderColor;
 
-                  // Minimum 2 kart
-                  if (crossAxisCount < 2) crossAxisCount = 2;
-
-                  return GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: cardWidth / 120, // Kart boyut oranı
-                    ),
-                    itemCount: 20, // Kaç kart gösterileceği
-                    itemBuilder: (context, index) {
-                      String serverStatus;
-                      Color borderColor;
-                      String status;
-                      Color statusColor;
-
-                      // Server durumu ve renk ayarları
-                      if (index == 2) {
-                        serverStatus = "Kritik";
-                        borderColor = Colors.red;
-                      } else if (index % 2 == 0) {
-                        serverStatus = "İyi";
-                        borderColor = Colors.green;
-                      } else {
-                        serverStatus = "Kontrol Gerektiriyor";
-                        borderColor = Colors.yellow;
-                      }
-
-                      // Status durumu ve renk ayarları
-                      if (index % 3 == 0) {
-                        status = "Çalışıyor";
-                        statusColor =
-                            borderColor; // Server status'tan renk alır
-                      } else {
-                        status = "Kapalı";
-                        statusColor = Colors.black; // Çalışmıyorsa siyah renk
-                      }
-
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            if (_selectedDevices.contains(index)) {
-                              _selectedDevices.remove(index);
+                            if (device.resourceUsage.cpuUsage > 80 ||
+                                device.resourceUsage.ramUsage > 80) {
+                              serverStatus = "Kritik";
+                              borderColor = Colors.red;
+                            } else if (device.resourceUsage.cpuUsage > 60 ||
+                                device.resourceUsage.ramUsage > 60) {
+                              serverStatus = "Kontrol Gerektiriyor";
+                              borderColor = Colors.yellow;
                             } else {
-                              _selectedDevices.add(index);
+                              serverStatus = "İyi";
+                              borderColor = Colors.green;
                             }
-                          });
-                        },
-                        onDoubleTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/dashboard',
-                            arguments: {
-                              'deviceId': index.toString(),
-                              'deviceName': "Mac Pro 16 inç",
-                            },
-                          );
-                        },
-                        child: DeviceCard(
-                          deviceName: "Mac Pro 16 inç",
-                          deviceType: "Laptop",
-                          status: status,
-                          statusColor: statusColor,
-                          serverStatus: serverStatus,
-                          borderColor: borderColor,
-                          isSelected: _selectedDevices.contains(index),
-                          onSelect: () {
-                            setState(() {
-                              if (_selectedDevices.contains(index)) {
-                                _selectedDevices.remove(index);
-                              } else {
-                                _selectedDevices.add(index);
-                              }
-                            });
+
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  if (_selectedDevices.contains(index)) {
+                                    _selectedDevices.remove(index);
+                                  } else {
+                                    _selectedDevices.add(index);
+                                  }
+                                });
+                              },
+                              onDoubleTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/dashboard',
+                                  arguments: {
+                                    'deviceId': device.id.toString(),
+                                    'deviceName': device.name,
+                                  },
+                                );
+                              },
+                              child: DeviceCard(
+                                deviceName: device.name,
+                                deviceType: device.type,
+                                status: device.status,
+                                statusColor:
+                                    device.status.toLowerCase() == "active"
+                                        ? Colors.green
+                                        : Colors.black,
+                                serverStatus: device.healthStatus,
+                                borderColor:
+                                    _getHealthStatusColor(device.healthStatus),
+                                isSelected: _selectedDevices.contains(index),
+                                onSelect: () {
+                                  setState(() {
+                                    if (_selectedDevices.contains(index)) {
+                                      _selectedDevices.remove(index);
+                                    } else {
+                                      _selectedDevices.add(index);
+                                    }
+                                  });
+                                },
+                              ),
+                            );
                           },
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
@@ -262,11 +327,49 @@ class _ServerPage extends State<ServerPage> {
           onChanged: (value) {
             setState(() {
               _sortBy = value!;
-              // Implement sorting logic
+              switch (_sortBy) {
+                case 'status':
+                  _devices.sort((a, b) => _getDeviceCriticality(b)
+                      .compareTo(_getDeviceCriticality(a)));
+                  break;
+                case 'resource':
+                  _devices.sort((a, b) => (b.resourceUsage.cpuUsage +
+                          b.resourceUsage.ramUsage)
+                      .compareTo(
+                          a.resourceUsage.cpuUsage + a.resourceUsage.ramUsage));
+                  break;
+                case 'name':
+                  _devices.sort((a, b) => a.name.compareTo(b.name));
+                  break;
+              }
             });
           },
         ),
       ),
     );
+  }
+
+  int _getDeviceCriticality(DeviceDTO device) {
+    if (device.resourceUsage.cpuUsage > 80 ||
+        device.resourceUsage.ramUsage > 80) {
+      return 2; // Kritik
+    } else if (device.resourceUsage.cpuUsage > 60 ||
+        device.resourceUsage.ramUsage > 60) {
+      return 1; // Kontrol Gerektiriyor
+    }
+    return 0; // İyi
+  }
+
+  Color _getHealthStatusColor(String healthStatus) {
+    switch (healthStatus.toLowerCase()) {
+      case 'good':
+        return Colors.green;
+      case 'warning':
+        return Colors.yellow;
+      case 'critical':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 }

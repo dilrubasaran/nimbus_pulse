@@ -15,11 +15,11 @@ class ApiEndpoints {
   static const String changePassword = '/user/change-password';
 
   // Device endpoints
-  static const String devices = '/devices';
-  static const String deviceDetails = '/devices/details';
-  static const String deviceApplications = '/devices/{id}/applications';
-  static const String deviceResources = '/devices/{id}/resources';
-  static const String deviceRestart = '/devices/{id}/restart';
+  static const String devices = '/device';
+  static const String deviceDetails = '/device/details';
+  static const String deviceApplications = '/device/{id}/applications';
+  static const String deviceResources = '/device/{id}/resources';
+  static const String deviceRestart = '/device/{id}/restart';
 
   // Helper method to replace path parameters
   static String withParams(String endpoint, Map<String, String> params) {

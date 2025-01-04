@@ -50,46 +50,46 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
               // Orta kısım - Arama
-              Expanded(
-                flex: 1,
-                child: Center(
-                  child: Container(
-                    width: isSmallScreen ? 200 : 300,
-                    height: 40,
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey[300]!),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.search, color: secondaryTextColor, size: 20),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: TextField(
-                            style: TextStyle(
-                              fontFamily: fontNunitoSans,
-                              color: primaryTextColor,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: "Search",
-                              hintStyle: TextStyle(
-                                color: secondaryTextColor,
-                                fontSize: 14,
-                                fontFamily: fontNunitoSans,
-                              ),
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              // Expanded(
+              //   flex: 1,
+              //   child: Center(
+              //     child: Container(
+              //       width: isSmallScreen ? 200 : 300,
+              //       height: 40,
+              //       padding: EdgeInsets.symmetric(horizontal: 16),
+              //       decoration: BoxDecoration(
+              //         color: Colors.grey[100],
+              //         borderRadius: BorderRadius.circular(8),
+              //         border: Border.all(color: Colors.grey[300]!),
+              //       ),
+              //       child: Row(
+              //         children: [
+              //           Icon(Icons.search, color: secondaryTextColor, size: 20),
+              //           SizedBox(width: 8),
+              //           Expanded(
+              //             child: TextField(
+              //               style: TextStyle(
+              //                 fontFamily: fontNunitoSans,
+              //                 color: primaryTextColor,
+              //               ),
+              //               decoration: InputDecoration(
+              //                 hintText: "Search",
+              //                 hintStyle: TextStyle(
+              //                   color: secondaryTextColor,
+              //                   fontSize: 14,
+              //                   fontFamily: fontNunitoSans,
+              //                 ),
+              //                 border: InputBorder.none,
+              //                 isDense: true,
+              //                 contentPadding: EdgeInsets.zero,
+              //               ),
+              //             ),
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ),
+              // ),
               // Sağ kısım - Profil
               Expanded(
                 flex: 1,
