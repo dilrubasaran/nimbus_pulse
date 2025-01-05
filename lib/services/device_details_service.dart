@@ -57,7 +57,7 @@ class DeviceDetailsService {
       print('\n=== Unexpected Error ===');
       print('Error Type: ${e.runtimeType}');
       print('Error Details: $e');
-      throw Exception('An unexpected error occurred. Please try again.');
+      throw Exception('Cihaz kapalı veya detay bilgileri yok');
     }
   }
 

@@ -39,7 +39,7 @@ dependencies:
   flutter_svg: ^2.0.16
   dio: ^5.7.0
   http: ^1.1.0
-  shared_preferences: ^2.2.0
+  shared_preferences: ^2.3.5
   provider: ^6.0.5
   syncfusion_flutter_charts: ^23.1.44
   syncfusion_flutter_gauges: ^23.1.44

@@ -21,6 +21,13 @@ class ApiEndpoints {
   static const String deviceResources = '/Device/{id}/resources';
   static const String deviceRestart = '/Device/{id}/restart';
 
+  // User Settings Endpoints
+  static String settingsProfile(String userId) => '/User/$userId/profile';
+  static String settingsPassword(String userId) => '/User/$userId/password';
+  static String settingsTheme(String userId) => '/User/$userId/theme';
+  static String settingsSecurityCode(String userId) =>
+      '/User/$userId/security-code';
+
   // Helper method to replace path parameters
   static String withParams(String endpoint, Map<String, String> params) {
     String result = endpoint;

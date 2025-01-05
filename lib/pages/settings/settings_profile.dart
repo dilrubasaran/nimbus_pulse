@@ -1,154 +1,293 @@
 import 'package:flutter/material.dart';
-import 'package:nimbus_pulse/layout/header.dart';
-import 'package:nimbus_pulse/layout/sidebar.dart';
-import 'package:nimbus_pulse/pages/settings/settings_header.dart';
+import '../../layout/sidebar.dart';
+import '../../layout/header.dart';
+import '../../services/user_settings_service.dart';
+import '../../dtos/settings_dto.dart';
+import '../../core/network/dio_client.dart';
+import 'settings_header.dart';
 
-class SettingsProfilePage extends StatelessWidget {
+class SettingsProfilePage extends StatefulWidget {
+  @override
+  _SettingsProfilePageState createState() => _SettingsProfilePageState();
+}
+
+class _SettingsProfilePageState extends State<SettingsProfilePage> {
+  final _formKey = GlobalKey<FormState>();
+  final UserSettingsService _settingsService = UserSettingsService(DioClient());
+  bool _isLoading = true;
+  String? _error;
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _surnameController = TextEditingController();
+  final TextEditingController _companyController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  String _profilePictureUrl = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileData();
+  }
+
+  Future<void> _loadProfileData() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      // TODO: Get actual user ID from auth service
+      const String userId = "7";
+      final profileData = await _settingsService.getProfile(userId);
+
+      setState(() {
+        _nameController.text = profileData.firstName;
+        _surnameController.text = profileData.surName;
+        _emailController.text = profileData.email;
+        _phoneController.text = profileData.phoneNumber;
+        _profilePictureUrl = profileData.profilePictureUrl;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Profil bilgileri yüklenirken hata oluştu: $_error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _saveChanges() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      // Sabit kullanıcı ID'si
+      const String userId = "7";
+
+      final profileData = ProfileUpdateDTO(
+        firstName: _nameController.text,
+        surName: _surnameController.text,
+        email: _emailController.text,
+        phoneNumber: _phoneController.text,
+        profilePictureUrl: _profilePictureUrl,
+      );
+
+      final success = await _settingsService.updateProfile(userId, profileData);
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Profil başarıyla güncellendi'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Profil güncellenirken hata oluştu: $_error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        children: [
-          // Sidebar
-          Sidebar(currentRoute: '/settings/settings_profile'),
-          Expanded(
-            child: Column(
-              children: [
-                // Header
-                Header(title: 'Profil'),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32.0, vertical: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Settings Header
-                        SettingsHeader(
-                          currentTab: 'Profil',
-                        ),
-                        SizedBox(height: 24),
-                        // Profile Form
-                        Expanded(
-                          child: Row(
-                            children: [
-                              // Left Form
-                              Expanded(
-                                flex: 2,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ProfileInputField(
-                                        title: "Ad Soyad:",
-                                        initialValue: "Dilruba Başaran"),
-                                    SizedBox(height: 16),
-                                    ProfileInputField(
-                                        title: "Şirket Adı:",
-                                        initialValue: "X Yazılım"),
-                                    SizedBox(height: 16),
-                                    ProfileInputField(
-                                        title: "E-mail:",
-                                        initialValue: "example123@gmail.com"),
-                                    SizedBox(height: 16),
-                                    ProfileInputField(
-                                        title: "Telefon:",
-                                        initialValue: "05 -- -- -- --"),
-                                  ],
-                                ),
-                              ),
-                              // Right Section (Profile Picture)
-                              Expanded(
-                                flex: 1,
-                                child: Column(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 50,
-                                      backgroundImage: AssetImage(
-                                          'assets/images/profile_picture.jpg'),
-                                    ),
-                                    SizedBox(height: 8),
-                                    TextButton(
-                                      onPressed: () {
-                                        // Handle profile photo upload
-                                      },
-                                      child: Text(
-                                        "Profil fotoğrafı yükle, değiştir",
-                                        style: TextStyle(
-                                          color: Color(0xFF177EC6),
-                                          fontSize: 12,
-                                          fontFamily: 'NunitoSans',
+      body: SafeArea(
+        child: Row(
+          children: [
+            Sidebar(currentRoute: '/settings/settings_profile'),
+            Expanded(
+              child: Column(
+                children: [
+                  Header(title: 'Profil'),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.all(32.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SettingsHeader(currentTab: 'Profil'),
+                          SizedBox(height: 32),
+                          _isLoading
+                              ? Center(child: CircularProgressIndicator())
+                              : Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Expanded(
+                                            flex: 2,
+                                            child: Column(
+                                              children: [
+                                                _buildTextField(
+                                                  label: 'Ad',
+                                                  controller: _nameController,
+                                                  validator: (value) {
+                                                    if (value == null ||
+                                                        value.isEmpty) {
+                                                      return 'Ad alanı boş bırakılamaz';
+                                                    }
+                                                    return null;
+                                                  },
+                                                ),
+                                                SizedBox(height: 16),
+                                                _buildTextField(
+                                                  label: 'Soyad',
+                                                  controller:
+                                                      _surnameController,
+                                                  validator: (value) {
+                                                    if (value == null ||
+                                                        value.isEmpty) {
+                                                      return 'Soyad alanı boş bırakılamaz';
+                                                    }
+                                                    return null;
+                                                  },
+                                                ),
+                                                SizedBox(height: 16),
+                                                _buildTextField(
+                                                  label: 'E-posta',
+                                                  controller: _emailController,
+                                                  validator: (value) {
+                                                    if (value == null ||
+                                                        value.isEmpty) {
+                                                      return 'E-posta alanı boş bırakılamaz';
+                                                    }
+                                                    if (!RegExp(
+                                                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                                        .hasMatch(value)) {
+                                                      return 'Geçerli bir e-posta adresi giriniz';
+                                                    }
+                                                    return null;
+                                                  },
+                                                ),
+                                                SizedBox(height: 16),
+                                                _buildTextField(
+                                                  label: 'Telefon',
+                                                  controller: _phoneController,
+                                                  validator: (value) {
+                                                    if (value == null ||
+                                                        value.isEmpty) {
+                                                      return 'Telefon alanı boş bırakılamaz';
+                                                    }
+                                                    return null;
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          SizedBox(width: 32),
+                                          Expanded(
+                                            flex: 1,
+                                            child: Column(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 50,
+                                                  backgroundImage: _profilePictureUrl
+                                                          .isNotEmpty
+                                                      ? NetworkImage(
+                                                          _profilePictureUrl)
+                                                      : AssetImage(
+                                                              'assets/images/profile_picture.jpg')
+                                                          as ImageProvider,
+                                                ),
+                                                SizedBox(height: 16),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    // TODO: Implement profile picture upload
+                                                  },
+                                                  child: Text(
+                                                    'Profil fotoğrafı yükle',
+                                                    style: TextStyle(
+                                                        color:
+                                                            Color(0xFF177EC6)),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 32),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: ElevatedButton(
+                                          onPressed:
+                                              _isLoading ? null : _saveChanges,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Color(0xFF177EC6),
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 32,
+                                              vertical: 16,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Değişiklikleri Kaydet',
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Save Button
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              // Handle save changes
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF177EC6),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: Text(
-                              "Değişiklikleri Kaydet",
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontFamily: 'NunitoSans',
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-}
 
-class ProfileInputField extends StatelessWidget {
-  final String title;
-  final String initialValue;
-
-  const ProfileInputField({
-    required this.title,
-    required this.initialValue,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    String? Function(String?)? validator,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          title,
+          label,
           style: TextStyle(
-            fontSize: 12,
-            fontFamily: 'NunitoSans',
             color: Color(0xFF177EC6),
+            fontWeight: FontWeight.w500,
           ),
         ),
         SizedBox(height: 8),
         TextFormField(
-          initialValue: initialValue,
+          controller: controller,
+          validator: validator,
           decoration: InputDecoration(
             filled: true,
             fillColor: Color(0xFFEFF8FF),
@@ -161,44 +300,18 @@ class ProfileInputField extends StatelessWidget {
               borderSide: BorderSide(color: Color(0xFFD9D9D9)),
             ),
           ),
-          style: TextStyle(
-            fontSize: 12,
-            fontFamily: 'NunitoSans',
-            color: Color(0xFFA3A3A3),
-          ),
         ),
       ],
     );
   }
-}
-
-class TabButton extends StatelessWidget {
-  final String title;
-  final bool isSelected;
-
-  const TabButton({
-    required this.title,
-    required this.isSelected,
-  });
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: TextButton(
-        onPressed: () {
-          // Handle tab click
-        },
-        child: Text(
-          title,
-          style: TextStyle(
-            fontSize: 12,
-            fontFamily: 'NunitoSans',
-            color: isSelected ? Color(0xFF177EC6) : Colors.black,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
+  void dispose() {
+    _nameController.dispose();
+    _surnameController.dispose();
+    _companyController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    super.dispose();
   }
 }

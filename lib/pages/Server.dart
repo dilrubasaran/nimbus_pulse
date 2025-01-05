@@ -420,14 +420,14 @@ class _ServerPage extends State<ServerPage> {
             DropdownMenuItem(
               value: 'criticality',
               child: Text(
-                'Kritik Duruma Göre',
+                'Sağlık Durumuma Göre ',
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             DropdownMenuItem(
               value: 'status',
               child: Text(
-                'Duruma Göre',
+                'Çalışma Durumuna Göre',
                 overflow: TextOverflow.ellipsis,
               ),
             ),
