@@ -89,4 +89,12 @@ class SecurityCodeChangeDTO {
         'newSecurityCode': newSecurityCode,
         'confirmNewSecurityCode': confirmNewSecurityCode,
       };
+
+  bool isValid() {
+    final digitRegex = RegExp(r'^\d{4}$');
+    return digitRegex.hasMatch(currentSecurityCode) &&
+        digitRegex.hasMatch(newSecurityCode) &&
+        digitRegex.hasMatch(confirmNewSecurityCode) &&
+        newSecurityCode == confirmNewSecurityCode;
+  }
 }

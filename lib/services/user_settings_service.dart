@@ -155,4 +155,42 @@ class UserSettingsService {
       rethrow;
     }
   }
+
+  // Güvenlik kodunu getirme
+  Future<String> getSecurityCode(String userId) async {
+    try {
+      print('\n=== Getting Security Code ===');
+      print('User ID: $userId');
+      print('Endpoint: ${ApiEndpoints.settingsSecurityCode(userId)}');
+
+      final response = await _dioClient.get(
+        ApiEndpoints.settingsSecurityCode(userId),
+      );
+
+      print('\n=== Security Code Response ===');
+      print('Status Code: ${response.statusCode}');
+      print('Response Data: ${response.data}');
+
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['securityCode']?.toString() ?? '';
+      }
+
+      throw Exception('Güvenlik kodu alınamadı');
+    } on DioException catch (e) {
+      print('\n=== Get Security Code Error ===');
+      print('Error Type: ${e.type}');
+      print('Error Message: ${e.message}');
+      print('Error Response: ${e.response}');
+
+      if (e.response?.statusCode == 404) {
+        throw Exception('Kullanıcı veya ayarlar bulunamadı');
+      }
+      throw Exception('Güvenlik kodu alınamadı: ${e.message}');
+    } catch (e) {
+      print('\n=== Unexpected Error ===');
+      print('Error Type: ${e.runtimeType}');
+      print('Error Details: $e');
+      throw Exception('Güvenlik kodu alınamadı: $e');
+    }
+  }
 }
