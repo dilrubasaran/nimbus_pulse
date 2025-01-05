@@ -64,6 +64,7 @@ class AppTheme {
   static ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
     primaryColor: Color(0xFF177EC6),
+
     scaffoldBackgroundColor: Color(0xFF1A1A1A),
     cardColor: Color(0xFF2D2D2D),
     dividerColor: Color(0xFF404040),

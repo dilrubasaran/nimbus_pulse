@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:nimbus_pulse/layout/main_layout.dart';
 import 'package:nimbus_pulse/pages/settings/settings_header.dart';
 import 'package:nimbus_pulse/services/user_settings_service.dart';
-import 'package:nimbus_pulse/dtos/settings_dto.dart';
 import 'package:nimbus_pulse/core/network/dio_client.dart';
 import 'package:provider/provider.dart';
 import 'package:nimbus_pulse/providers/theme_provider.dart';

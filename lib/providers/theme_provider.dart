@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+//kullanım dışı
 class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
 
