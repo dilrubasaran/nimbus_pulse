@@ -37,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.pushReplacementNamed(context, '/server');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Login successful!'),
+              content: Text('Giriş başarılı!'),
               backgroundColor: Colors.green,
             ),
           );
@@ -47,7 +47,7 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.pushReplacementNamed(context, '/server');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(response['message'] ?? 'Login successful!'),
+              content: Text(response['message'] ?? 'Giriş başarılı!'),
               backgroundColor: Colors.green,
             ),
           );
@@ -58,13 +58,24 @@ class _LoginPageState extends State<LoginPage> {
         if (errorMessage.startsWith('Exception: ')) {
           errorMessage = errorMessage.substring('Exception: '.length);
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            duration: Duration(seconds: 5),
-            backgroundColor: Colors.red,
-          ),
-        );
+
+        // Hata mesajını göster
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              duration: Duration(seconds: 5),
+              backgroundColor: Colors.red,
+              action: SnackBarAction(
+                label: 'Tamam',
+                textColor: Colors.white,
+                onPressed: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                },
+              ),
+            ),
+          );
+        }
       } finally {
         if (mounted) {
           setState(() {

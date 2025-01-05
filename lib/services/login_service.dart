@@ -40,30 +40,29 @@ class LoginService {
             }
             return response.data;
           } else if (response.data is String) {
-            // Eğer yanıt string ise ve başarılı ise
             return {'message': response.data};
           }
         }
-        return {'message': 'Login successful'};
+        return {'message': 'Giriş başarılı'};
       }
 
       // Hata durumlarını kontrol et
       if (response.statusCode == 400) {
         final errorMessage = response.data is String
             ? response.data
-            : response.data?['message'] ?? 'Invalid credentials';
+            : response.data?['message'] ?? 'Geçersiz giriş bilgileri';
         throw Exception(errorMessage);
       }
 
       if (response.statusCode == 401) {
-        throw Exception('Invalid email or password');
+        throw Exception('E-posta veya şifre hatalı');
       }
 
       if (response.statusCode == 404) {
-        throw Exception('User not found');
+        throw Exception('Kullanıcı bulunamadı');
       }
 
-      throw Exception('Login failed. Please try again.');
+      throw Exception('Giriş başarısız. Lütfen tekrar deneyin.');
     } on DioException catch (e) {
       print('\n=== Login Error ===');
       print('Error Type: ${e.type}');
@@ -73,32 +72,34 @@ class LoginService {
       switch (e.type) {
         case DioExceptionType.connectionTimeout:
           throw Exception(
-              'Connection timeout. Please check your internet connection.');
+              'Bağlantı zaman aşımına uğradı. Lütfen internet bağlantınızı kontrol edin.');
         case DioExceptionType.sendTimeout:
-          throw Exception('Send timeout. Please try again later.');
+          throw Exception('İstek zaman aşımına uğradı. Lütfen tekrar deneyin.');
         case DioExceptionType.receiveTimeout:
-          throw Exception('Receive timeout. Please try again later.');
+          throw Exception('Yanıt zaman aşımına uğradı. Lütfen tekrar deneyin.');
         case DioExceptionType.connectionError:
-          throw Exception('Connection failed. Please check:\n'
-              '1. If the API is running\n'
-              '2. Your network connection\n'
-              '3. Windows firewall settings');
+          throw Exception('Bağlantı hatası. Lütfen kontrol edin:\n'
+              '1. API servisinin çalışır durumda olduğunu\n'
+              '2. İnternet bağlantınızı\n'
+              '3. Windows güvenlik duvarı ayarlarını');
         default:
-          if (e.response?.statusCode == 400) {
+          if (e.response?.statusCode == 401) {
+            throw Exception('E-posta veya şifre hatalı');
+          } else if (e.response?.statusCode == 400) {
             final errorMessage = e.response?.data is String
                 ? e.response?.data
-                : e.response?.data?['message'] ?? 'Invalid credentials';
+                : e.response?.data?['message'] ?? 'Geçersiz giriş bilgileri';
             throw Exception(errorMessage);
           } else if (e.response?.data != null) {
-            throw Exception(e.response?.data['message'] ?? 'Login failed');
+            throw Exception(e.response?.data['message'] ?? 'Giriş başarısız');
           }
-          throw Exception('Unexpected error: ${e.message}');
+          throw Exception('Beklenmeyen bir hata oluştu: ${e.message}');
       }
     } catch (e) {
       print('\n=== Unexpected Error ===');
       print('Error Type: ${e.runtimeType}');
       print('Error Details: $e');
-      throw Exception('An unexpected error occurred. Please try again.');
+      throw Exception('Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.');
     }
   }
 }

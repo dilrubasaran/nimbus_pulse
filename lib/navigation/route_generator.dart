@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:nimbus_pulse/pages/server.dart';
-import 'package:nimbus_pulse/pages/device_detail.dart';
 import 'package:nimbus_pulse/pages/login.dart';
 import 'package:nimbus_pulse/pages/register.dart';
 import 'package:nimbus_pulse/pages/dashboard.dart';
@@ -9,9 +8,6 @@ import 'package:nimbus_pulse/pages/settings/settings_profile.dart';
 import 'package:nimbus_pulse/pages/settings/settings_password.dart';
 import 'package:nimbus_pulse/pages/settings/settings_theme_language.dart';
 import 'package:nimbus_pulse/pages/settings/settings_security.dart';
-import '../pages/dashboard.dart';
-import '../pages/server.dart';
-import '../pages/login.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {

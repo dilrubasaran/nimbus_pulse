@@ -12,17 +12,59 @@ class UserSettingsService {
   Future<bool> updateProfile(
       String userId, ProfileUpdateDTO profileData) async {
     try {
+      print('\n=== Updating Profile ===');
+      print('User ID: $userId');
+      print('Profile Data: ${profileData.toJson()}');
+
       final response = await _dioClient.put(
         ApiEndpoints.settingsProfile(userId),
         data: profileData.toJson(),
       );
-      return response.statusCode == 200;
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 404) {
-        throw Exception('Kullanıcı bulunamadı');
+
+      print('\n=== Update Profile Response ===');
+      print('Status Code: ${response.statusCode}');
+      print('Response Data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        return true;
       }
-      print('Profile update error: $e');
-      rethrow;
+
+      throw Exception('Profil güncellenemedi: ${response.statusCode}');
+    } on DioException catch (e) {
+      print('\n=== Update Profile Error ===');
+      print('Error Type: ${e.type}');
+      print('Error Message: ${e.message}');
+      print('Error Response: ${e.response}');
+
+      switch (e.type) {
+        case DioExceptionType.connectionTimeout:
+          throw Exception(
+              'Bağlantı zaman aşımına uğradı. Lütfen internet bağlantınızı kontrol edin.');
+        case DioExceptionType.sendTimeout:
+          throw Exception('İstek zaman aşımına uğradı. Lütfen tekrar deneyin.');
+        case DioExceptionType.receiveTimeout:
+          throw Exception('Yanıt zaman aşımına uğradı. Lütfen tekrar deneyin.');
+        case DioExceptionType.connectionError:
+          throw Exception('Bağlantı hatası. Lütfen kontrol edin:\n'
+              '1. API servisinin çalışır durumda olduğunu\n'
+              '2. İnternet bağlantınızı\n'
+              '3. Windows güvenlik duvarı ayarlarını');
+        default:
+          if (e.response?.statusCode == 404) {
+            throw Exception('Kullanıcı bulunamadı');
+          } else if (e.response?.statusCode == 400) {
+            final errorMessage = e.response?.data is String
+                ? e.response?.data
+                : e.response?.data?['message'] ?? 'Geçersiz profil bilgileri';
+            throw Exception(errorMessage);
+          }
+          throw Exception('Profil güncellenirken hata oluştu: ${e.message}');
+      }
+    } catch (e) {
+      print('\n=== Unexpected Error ===');
+      print('Error Type: ${e.runtimeType}');
+      print('Error Details: $e');
+      throw Exception('Profil güncellenirken beklenmeyen bir hata oluştu: $e');
     }
   }
 
@@ -97,57 +139,6 @@ class UserSettingsService {
       }
       print('Security code update error: $e');
       rethrow;
-    }
-  }
-
-  // Profil bilgilerini getirme
-  Future<ProfileUpdateDTO> getProfile(String userId) async {
-    try {
-      print('Requesting profile data for user ID: $userId');
-      print('Endpoint: ${ApiEndpoints.settingsProfile(userId)}');
-
-      // Boş bir profil oluştur
-      final emptyProfile = ProfileUpdateDTO(
-        firstName: '',
-        surName: '',
-        email: '',
-        phoneNumber: '',
-        profilePictureUrl: '',
-      );
-
-      // PUT isteği yap
-      final response = await _dioClient.put(
-        ApiEndpoints.settingsProfile(userId),
-        data: emptyProfile.toJson(),
-      );
-
-      print('Profile API Response:');
-      print('Status Code: ${response.statusCode}');
-      print('Response Data: ${response.data}');
-      print('Response Data Type: ${response.data.runtimeType}');
-
-      if (response.statusCode == 200) {
-        // Başarılı yanıt, boş profili döndür
-        return emptyProfile;
-      } else {
-        throw Exception('Profil bilgileri alınamadı: ${response.data}');
-      }
-    } on DioException catch (e) {
-      print('Get profile error details:');
-      print('Error type: ${e.type}');
-      print('Error message: ${e.message}');
-      print('Error response status: ${e.response?.statusCode}');
-      print('Error response data: ${e.response?.data}');
-      print('Request URL: ${e.requestOptions.uri}');
-      print('Request method: ${e.requestOptions.method}');
-
-      if (e.response?.statusCode == 404) {
-        throw Exception('Kullanıcı bulunamadı');
-      }
-      throw Exception('Profil bilgileri alınamadı: ${e.message}');
-    } catch (e) {
-      print('Unexpected error: $e');
-      throw Exception('Profil bilgileri alınamadı: $e');
     }
   }
 

@@ -14,65 +14,25 @@ class SettingsProfilePage extends StatefulWidget {
 class _SettingsProfilePageState extends State<SettingsProfilePage> {
   final _formKey = GlobalKey<FormState>();
   final UserSettingsService _settingsService = UserSettingsService(DioClient());
-  bool _isLoading = true;
+  bool _isSaving = false;
   String? _error;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _surnameController = TextEditingController();
-  final TextEditingController _companyController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   String _profilePictureUrl = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfileData();
-  }
-
-  Future<void> _loadProfileData() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-
-      // TODO: Get actual user ID from auth service
-      const String userId = "7";
-      final profileData = await _settingsService.getProfile(userId);
-
-      setState(() {
-        _nameController.text = profileData.firstName;
-        _surnameController.text = profileData.surName;
-        _emailController.text = profileData.email;
-        _phoneController.text = profileData.phoneNumber;
-        _profilePictureUrl = profileData.profilePictureUrl;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Profil bilgileri yüklenirken hata oluştu: $_error'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
 
   Future<void> _saveChanges() async {
     if (!_formKey.currentState!.validate()) return;
 
     try {
       setState(() {
-        _isLoading = true;
+        _isSaving = true;
         _error = null;
       });
 
-      // Sabit kullanıcı ID'si
+      // TODO: Get actual user ID from auth service
       const String userId = "7";
 
       final profileData = ProfileUpdateDTO(
@@ -85,7 +45,7 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
 
       final success = await _settingsService.updateProfile(userId, profileData);
 
-      if (success) {
+      if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Profil başarıyla güncellendi'),
@@ -94,19 +54,28 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
         );
       }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Profil güncellenirken hata oluştu: $_error'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Profil güncellenirken hata oluştu: $_error'),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'Tekrar Dene',
+              textColor: Colors.white,
+              onPressed: _saveChanges,
+            ),
+          ),
+        );
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -129,133 +98,139 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
                         children: [
                           SettingsHeader(currentTab: 'Profil'),
                           SizedBox(height: 32),
-                          _isLoading
-                              ? Center(child: CircularProgressIndicator())
-                              : Form(
-                                  key: _formKey,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                          Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      flex: 2,
+                                      child: Column(
                                         children: [
-                                          Expanded(
-                                            flex: 2,
-                                            child: Column(
-                                              children: [
-                                                _buildTextField(
-                                                  label: 'Ad',
-                                                  controller: _nameController,
-                                                  validator: (value) {
-                                                    if (value == null ||
-                                                        value.isEmpty) {
-                                                      return 'Ad alanı boş bırakılamaz';
-                                                    }
-                                                    return null;
-                                                  },
-                                                ),
-                                                SizedBox(height: 16),
-                                                _buildTextField(
-                                                  label: 'Soyad',
-                                                  controller:
-                                                      _surnameController,
-                                                  validator: (value) {
-                                                    if (value == null ||
-                                                        value.isEmpty) {
-                                                      return 'Soyad alanı boş bırakılamaz';
-                                                    }
-                                                    return null;
-                                                  },
-                                                ),
-                                                SizedBox(height: 16),
-                                                _buildTextField(
-                                                  label: 'E-posta',
-                                                  controller: _emailController,
-                                                  validator: (value) {
-                                                    if (value == null ||
-                                                        value.isEmpty) {
-                                                      return 'E-posta alanı boş bırakılamaz';
-                                                    }
-                                                    if (!RegExp(
-                                                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                                        .hasMatch(value)) {
-                                                      return 'Geçerli bir e-posta adresi giriniz';
-                                                    }
-                                                    return null;
-                                                  },
-                                                ),
-                                                SizedBox(height: 16),
-                                                _buildTextField(
-                                                  label: 'Telefon',
-                                                  controller: _phoneController,
-                                                  validator: (value) {
-                                                    if (value == null ||
-                                                        value.isEmpty) {
-                                                      return 'Telefon alanı boş bırakılamaz';
-                                                    }
-                                                    return null;
-                                                  },
-                                                ),
-                                              ],
-                                            ),
+                                          _buildTextField(
+                                            label: 'Ad',
+                                            controller: _nameController,
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Ad alanı boş bırakılamaz';
+                                              }
+                                              return null;
+                                            },
                                           ),
-                                          SizedBox(width: 32),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Column(
-                                              children: [
-                                                CircleAvatar(
-                                                  radius: 50,
-                                                  backgroundImage: _profilePictureUrl
-                                                          .isNotEmpty
-                                                      ? NetworkImage(
-                                                          _profilePictureUrl)
-                                                      : AssetImage(
-                                                              'assets/images/profile_picture.jpg')
-                                                          as ImageProvider,
-                                                ),
-                                                SizedBox(height: 16),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    // TODO: Implement profile picture upload
-                                                  },
-                                                  child: Text(
-                                                    'Profil fotoğrafı yükle',
-                                                    style: TextStyle(
-                                                        color:
-                                                            Color(0xFF177EC6)),
-                                                  ),
-                                                ),
-                                              ],
+                                          SizedBox(height: 16),
+                                          _buildTextField(
+                                            label: 'Soyad',
+                                            controller: _surnameController,
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Soyad alanı boş bırakılamaz';
+                                              }
+                                              return null;
+                                            },
+                                          ),
+                                          SizedBox(height: 16),
+                                          _buildTextField(
+                                            label: 'E-posta',
+                                            controller: _emailController,
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'E-posta alanı boş bırakılamaz';
+                                              }
+                                              if (!RegExp(
+                                                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                                  .hasMatch(value)) {
+                                                return 'Geçerli bir e-posta adresi giriniz';
+                                              }
+                                              return null;
+                                            },
+                                          ),
+                                          SizedBox(height: 16),
+                                          _buildTextField(
+                                            label: 'Telefon',
+                                            controller: _phoneController,
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Telefon alanı boş bırakılamaz';
+                                              }
+                                              return null;
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(width: 32),
+                                    Expanded(
+                                      flex: 1,
+                                      child: Column(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 50,
+                                            backgroundImage: _profilePictureUrl
+                                                    .isNotEmpty
+                                                ? NetworkImage(
+                                                    _profilePictureUrl)
+                                                : AssetImage(
+                                                        'assets/images/profile_picture.jpg')
+                                                    as ImageProvider,
+                                          ),
+                                          SizedBox(height: 16),
+                                          TextButton(
+                                            onPressed: () {
+                                              // TODO: Implement profile picture upload
+                                            },
+                                            child: Text(
+                                              'Profil fotoğrafı yükle',
+                                              style: TextStyle(
+                                                  color: Color(0xFF177EC6)),
                                             ),
                                           ),
                                         ],
                                       ),
-                                      SizedBox(height: 32),
-                                      Align(
-                                        alignment: Alignment.centerRight,
-                                        child: ElevatedButton(
-                                          onPressed:
-                                              _isLoading ? null : _saveChanges,
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Color(0xFF177EC6),
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 32,
-                                              vertical: 16,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            'Değişiklikleri Kaydet',
-                                            style:
-                                                TextStyle(color: Colors.white),
-                                          ),
-                                        ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 32),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: ElevatedButton(
+                                    onPressed: _isSaving ? null : _saveChanges,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Color(0xFF177EC6),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 32,
+                                        vertical: 16,
                                       ),
-                                    ],
+                                    ),
+                                    child: _isSaving
+                                        ? Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  color: Colors.white,
+                                                  strokeWidth: 2,
+                                                ),
+                                              ),
+                                              SizedBox(width: 8),
+                                              Text('Kaydediliyor...'),
+                                            ],
+                                          )
+                                        : Text('Değişiklikleri Kaydet'),
                                   ),
                                 ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -272,7 +247,7 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
-    String? Function(String?)? validator,
+    required String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,8 +255,9 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
         Text(
           label,
           style: TextStyle(
-            color: Color(0xFF177EC6),
+            fontSize: 14,
             fontWeight: FontWeight.w500,
+            color: Color(0xFF177EC6),
           ),
         ),
         SizedBox(height: 8),
@@ -299,6 +275,15 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Color(0xFFD9D9D9)),
             ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.red),
+            ),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+          style: TextStyle(
+            fontSize: 14,
+            color: Color(0xFF2D2D2D),
           ),
         ),
       ],
@@ -309,7 +294,6 @@ class _SettingsProfilePageState extends State<SettingsProfilePage> {
   void dispose() {
     _nameController.dispose();
     _surnameController.dispose();
-    _companyController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     super.dispose();

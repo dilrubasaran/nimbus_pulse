@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nimbus_pulse/layout/header.dart';
+
 import 'package:nimbus_pulse/layout/sidebar.dart';
 import '../styles/consts.dart';
 
