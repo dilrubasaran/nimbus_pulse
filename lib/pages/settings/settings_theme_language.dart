@@ -5,6 +5,8 @@ import 'package:nimbus_pulse/services/user_settings_service.dart';
 import 'package:nimbus_pulse/core/network/dio_client.dart';
 import 'package:provider/provider.dart';
 import 'package:nimbus_pulse/providers/theme_provider.dart';
+import 'package:nimbus_pulse/styles/consts.dart';
+import 'package:nimbus_pulse/layout/header.dart';
 
 class SettingsThemeLanguagePage extends StatefulWidget {
   @override
@@ -97,32 +99,35 @@ class _SettingsThemeLanguagePageState extends State<SettingsThemeLanguagePage> {
   }
 
   Widget _buildThemeOption(String title, String value, String imagePath) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    bool isSelected = _selectedTheme == value;
+
     return Container(
-      margin: EdgeInsets.only(bottom: 16),
       width: double.infinity,
+      height: 80,
+      margin: EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        color: isDark ? Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isSelected ? primaryTextColor : Color(0xFFE2E8F0),
+          width: isSelected ? 2 : 1,
+        ),
+      ),
       child: InkWell(
         onTap: () {
           setState(() {
             _selectedTheme = value;
           });
         },
-        child: Container(
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isDark ? Color(0xFF2D2D2D) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: _selectedTheme == value
-                  ? Color(0xFF177EC6)
-                  : Color(0xFFD9D9D9),
-              width: 2,
-            ),
-          ),
-          child: Column(
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: EdgeInsets.all(12),
+          child: Row(
             children: [
               Container(
-                height: 120,
+                width: 50,
+                height: 50,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   image: DecorationImage(
@@ -131,18 +136,33 @@ class _SettingsThemeLanguagePageState extends State<SettingsThemeLanguagePage> {
                   ),
                 ),
               ),
-              SizedBox(height: 12),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: _selectedTheme == value
-                      ? FontWeight.bold
-                      : FontWeight.normal,
-                  color: _selectedTheme == value
-                      ? Color(0xFF177EC6)
-                      : (isDark ? Colors.white70 : Color(0xFF64748B)),
-                ),
+              SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white : primaryTextColor,
+                    ),
+                  ),
+                ],
+              ),
+              Spacer(),
+              Radio(
+                value: value,
+                groupValue: _selectedTheme,
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      _selectedTheme = newValue;
+                    });
+                  }
+                },
+                activeColor: primaryTextColor,
               ),
             ],
           ),
@@ -152,82 +172,92 @@ class _SettingsThemeLanguagePageState extends State<SettingsThemeLanguagePage> {
   }
 
   Widget _buildLanguageDropdown() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Dil Seçenekleri:',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF177EC6),
-          ),
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Color(0xFFE2E8F0),
+          width: 1,
         ),
-        SizedBox(height: 16),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: isDark ? Color(0xFF2D2D2D) : Color(0xFFEFF8FF),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-                color: isDark ? Color(0xFF404040) : Color(0xFFD9D9D9)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _selectedLanguage,
-              isExpanded: true,
-              icon: Icon(Icons.keyboard_arrow_down, color: Color(0xFF177EC6)),
-              dropdownColor: isDark ? Color(0xFF2D2D2D) : Colors.white,
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark ? Colors.white : Color(0xFF2D2D2D),
-              ),
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    _selectedLanguage = newValue;
-                  });
-                }
-              },
-              items: [
-                DropdownMenuItem(
-                  value: 'tr',
-                  child: Row(
-                    children: [
-                      Image.asset('assets/images/tr_flag.png',
-                          width: 24, height: 24),
-                      SizedBox(width: 8),
-                      Text(
-                        'Türkçe',
-                        style: TextStyle(
-                          color: isDark ? Colors.white : Color(0xFF2D2D2D),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                DropdownMenuItem(
-                  value: 'en',
-                  child: Row(
-                    children: [
-                      Image.asset('assets/images/en_flag.png',
-                          width: 24, height: 24),
-                      SizedBox(width: 8),
-                      Text(
-                        'English',
-                        style: TextStyle(
-                          color: isDark ? Colors.white : Color(0xFF2D2D2D),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Dil Seçenekleri:',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: primaryTextColor,
             ),
           ),
-        ),
-      ],
+          SizedBox(height: 16),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: bgPrimaryColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _selectedLanguage,
+                isExpanded: true,
+                icon: Icon(Icons.keyboard_arrow_down, color: primaryTextColor),
+                dropdownColor: isDark ? Color(0xFF1E293B) : backgroundColor,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.white : primaryTextColor,
+                ),
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      _selectedLanguage = newValue;
+                    });
+                  }
+                },
+                items: [
+                  DropdownMenuItem(
+                    value: 'tr',
+                    child: Row(
+                      children: [
+                        Image.asset('assets/images/tr_flag.png',
+                            width: 24, height: 24),
+                        SizedBox(width: 8),
+                        Text(
+                          'Türkçe',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : primaryTextColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 'en',
+                    child: Row(
+                      children: [
+                        Image.asset('assets/images/en_flag.png',
+                            width: 24, height: 24),
+                        SizedBox(width: 8),
+                        Text(
+                          'English',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : primaryTextColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -235,87 +265,94 @@ class _SettingsThemeLanguagePageState extends State<SettingsThemeLanguagePage> {
   Widget build(BuildContext context) {
     return MainLayout(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SettingsHeader(currentTab: 'Tema'),
-              SizedBox(height: 32),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Tema Seçenekleri:',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF177EC6),
-                        ),
-                      ),
-                      SizedBox(height: 24),
-                      Column(
-                        children: [
-                          _buildThemeOption(
-                            'Sistem Teması',
-                            'system',
-                            'assets/images/theme_system.png',
-                          ),
-                          SizedBox(height: 16),
-                          _buildThemeOption(
-                            'Açık Tema',
-                            'light',
-                            'assets/images/theme_light.png',
-                          ),
-                          SizedBox(height: 16),
-                          _buildThemeOption(
-                            'Koyu Tema',
-                            'dark',
-                            'assets/images/theme_dark.png',
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 32),
-                      _buildLanguageDropdown(),
-                      SizedBox(height: 32),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: ElevatedButton(
-                          onPressed: _isSaving ? null : _saveThemeSettings,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF177EC6),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 32,
-                              vertical: 16,
+        child: Column(
+          children: [
+            Header(title: 'Tema'),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SettingsHeader(currentTab: 'Tema'),
+                    SizedBox(height: 24),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Tema Seçenekleri:',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: primaryTextColor,
+                              ),
                             ),
-                          ),
-                          child: _isSaving
-                              ? Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
+                            SizedBox(height: 8),
+                            _buildThemeOption(
+                              'Açık Tema',
+                              'light',
+                              'assets/images/theme_light.png',
+                            ),
+                            SizedBox(height: 8),
+                            _buildThemeOption(
+                              'Koyu Tema',
+                              'dark',
+                              'assets/images/theme_dark.png',
+                            ),
+                            SizedBox(height: 24),
+                            _buildLanguageDropdown(),
+                            SizedBox(height: 24),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 45,
+                              child: ElevatedButton(
+                                onPressed:
+                                    _isSaving ? null : _saveThemeSettings,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryTextColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  elevation: 2,
+                                ),
+                                child: _isSaving
+                                    ? Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text('Kaydediliyor...'),
+                                        ],
+                                      )
+                                    : Text(
+                                        'Değişiklikleri Kaydet',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text('Kaydediliyor...'),
-                                  ],
-                                )
-                              : Text('Değişiklikleri Kaydet'),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -5,6 +5,7 @@ import 'package:nimbus_pulse/pages/settings/settings_header.dart';
 import 'package:nimbus_pulse/services/user_settings_service.dart';
 import 'package:nimbus_pulse/dtos/settings_dto.dart';
 import 'package:nimbus_pulse/core/network/dio_client.dart';
+import 'package:nimbus_pulse/styles/consts.dart';
 
 class SettingsSecurityPage extends StatefulWidget {
   @override
@@ -114,6 +115,7 @@ class _SettingsSecurityPageState extends State<SettingsSecurityPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: Row(
           children: [
@@ -123,109 +125,111 @@ class _SettingsSecurityPageState extends State<SettingsSecurityPage> {
                 children: [
                   Header(title: 'Güvenlik Kodu'),
                   Expanded(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.all(32.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SettingsHeader(currentTab: 'Güvenlik Kodu'),
-                          SizedBox(height: 32),
-                          Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Color(0xFFD9D9D9),
-                                width: 1,
-                              ),
-                            ),
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Güvenlik Kodu Değiştir',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF177EC6),
-                                    ),
-                                  ),
-                                  SizedBox(height: 24),
-                                  SecurityInputField(
-                                    title: "Mevcut Güvenlik Kodu:",
-                                    controller: _currentSecurityCodeController,
-                                    validator: _validateSecurityCode,
-                                  ),
-                                  SizedBox(height: 16),
-                                  SecurityInputField(
-                                    title: "Yeni Güvenlik Kodu:",
-                                    controller: _newSecurityCodeController,
-                                    validator: _validateSecurityCode,
-                                  ),
-                                  SizedBox(height: 16),
-                                  SecurityInputField(
-                                    title: "Yeni Güvenlik Kodu (Tekrar):",
-                                    controller: _confirmSecurityCodeController,
-                                    validator: _validateConfirmSecurityCode,
-                                  ),
-                                  if (_error != null) ...[
-                                    SizedBox(height: 16),
+                    child: Container(
+                      color: backgroundColor,
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.all(32.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SettingsHeader(currentTab: 'Güvenlik Kodu'),
+                            SizedBox(height: 32),
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(24),
+                              child: Form(
+                                key: _formKey,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
                                     Text(
-                                      _error!,
+                                      'Güvenlik Kodu Değiştir',
                                       style: TextStyle(
-                                        color: Colors.red,
-                                        fontSize: 14,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: primaryTextColor,
+                                      ),
+                                    ),
+                                    SizedBox(height: 24),
+                                    SecurityInputField(
+                                      title: "Mevcut Güvenlik Kodu:",
+                                      controller:
+                                          _currentSecurityCodeController,
+                                      validator: _validateSecurityCode,
+                                    ),
+                                    SizedBox(height: 16),
+                                    SecurityInputField(
+                                      title: "Yeni Güvenlik Kodu:",
+                                      controller: _newSecurityCodeController,
+                                      validator: _validateSecurityCode,
+                                    ),
+                                    SizedBox(height: 16),
+                                    SecurityInputField(
+                                      title: "Yeni Güvenlik Kodu (Tekrar):",
+                                      controller:
+                                          _confirmSecurityCodeController,
+                                      validator: _validateConfirmSecurityCode,
+                                    ),
+                                    if (_error != null) ...[
+                                      SizedBox(height: 16),
+                                      Text(
+                                        _error!,
+                                        style: TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                    SizedBox(height: 24),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: SizedBox(
+                                        width: 200,
+                                        height: 45,
+                                        child: ElevatedButton(
+                                          onPressed: _isSaving
+                                              ? null
+                                              : _updateSecurityCode,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: primaryTextColor,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          child: _isSaving
+                                              ? Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    SizedBox(
+                                                      width: 20,
+                                                      height: 20,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                        color: Colors.white,
+                                                        strokeWidth: 2,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Text('Kaydediliyor...'),
+                                                  ],
+                                                )
+                                              : Text(
+                                                  'Değişiklikleri Kaydet',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                        ),
                                       ),
                                     ),
                                   ],
-                                  SizedBox(height: 24),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: SizedBox(
-                                      width: 200,
-                                      height: 45,
-                                      child: ElevatedButton(
-                                        onPressed: _isSaving
-                                            ? null
-                                            : _updateSecurityCode,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Color(0xFF177EC6),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                        ),
-                                        child: _isSaving
-                                            ? Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  SizedBox(
-                                                    width: 20,
-                                                    height: 20,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                      color: Colors.white,
-                                                      strokeWidth: 2,
-                                                    ),
-                                                  ),
-                                                  SizedBox(width: 8),
-                                                  Text('Kaydediliyor...'),
-                                                ],
-                                              )
-                                            : Text('Değişiklikleri Kaydet'),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -253,10 +257,11 @@ class SecurityInputField extends StatelessWidget {
   final String? Function(String?)? validator;
 
   const SecurityInputField({
+    Key? key,
     required this.title,
     required this.controller,
     this.validator,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -268,7 +273,7 @@ class SecurityInputField extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF177EC6),
+            color: Colors.blue,
           ),
         ),
         SizedBox(height: 8),
@@ -280,21 +285,45 @@ class SecurityInputField extends StatelessWidget {
           maxLength: 4,
           decoration: InputDecoration(
             filled: true,
-            fillColor: Color(0xFFEFF8FF),
+            fillColor: bgPrimaryColor,
             counterText: '',
+            prefixIcon: Icon(
+              Icons.lock_outline,
+              color: Colors.grey[600],
+            ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Color(0xFFD9D9D9)),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Color(0xFFD9D9D9)),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Colors.blue,
+                width: 2,
+              ),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.red),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Colors.red,
+                width: 2,
+              ),
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Colors.red,
+                width: 2,
+              ),
+            ),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
           ),
           style: TextStyle(
             fontSize: 14,

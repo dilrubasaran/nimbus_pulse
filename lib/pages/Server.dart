@@ -4,6 +4,7 @@ import '../widgets/device_card.dart';
 import '../services/server_service.dart';
 import '../dtos/device_dto.dart';
 import '../core/network/dio_client.dart';
+import '../styles/consts.dart';
 
 class ServerPage extends StatefulWidget {
   @override
@@ -97,137 +98,321 @@ class _ServerPage extends State<ServerPage> {
     final TextEditingController ipAddressController = TextEditingController();
     String selectedType = 'Physical Server';
     String selectedOS = 'Windows Server';
-    String selectedStatus = 'Active';
+    String selectedStatus = 'Çalışıyor';
     String selectedHealthStatus = 'Good';
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Yeni Cihaz Ekle'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: 'Cihaz Adı',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Cihaz Tipi',
-                  border: OutlineInputBorder(),
-                ),
-                value: selectedType,
-                items: ['Physical Server', 'Virtual Machine', 'Database Server']
-                    .map((type) => DropdownMenuItem(
-                          value: type,
-                          child: Text(type),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  selectedType = value!;
-                },
-              ),
-              SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'İşletim Sistemi',
-                  border: OutlineInputBorder(),
-                ),
-                value: selectedOS,
-                items: ['Windows Server', 'Linux Server', 'MacOS Server']
-                    .map((os) => DropdownMenuItem(
-                          value: os,
-                          child: Text(os),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  selectedOS = value!;
-                },
-              ),
-              SizedBox(height: 16),
-              TextField(
-                controller: ipAddressController,
-                decoration: InputDecoration(
-                  labelText: 'IP Adresi',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Çalışma Durumu',
-                  border: OutlineInputBorder(),
-                ),
-                value: selectedStatus,
-                items: ['Active', 'Inactive']
-                    .map((status) => DropdownMenuItem(
-                          value: status,
-                          child: Text(
-                              status == 'Active' ? 'Çalışıyor' : 'Çalışmıyor'),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  selectedStatus = value!;
-                },
-              ),
-              SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Sağlık Durumu',
-                  border: OutlineInputBorder(),
-                ),
-                value: selectedHealthStatus,
-                items: ['Good', 'Requires Check', 'Critical']
-                    .map((status) => DropdownMenuItem(
-                          value: status,
-                          child: Text(status),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  selectedHealthStatus = value!;
-                },
-              ),
-            ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('İptal'),
+          title: Text(
+            'Yeni Cihaz Ekle',
+            style: TextStyle(
+              color: primaryTextColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              if (nameController.text.isEmpty ||
-                  ipAddressController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Tüm alanları doldurunuz'),
-                    backgroundColor: Colors.red,
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Cihaz Adı',
+                    labelStyle: TextStyle(color: primaryTextColor),
+                    filled: true,
+                    fillColor: bgPrimaryColor,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: primaryTextColor, width: 2),
+                    ),
                   ),
-                );
-                return;
-              }
-
-              final newDevice = DeviceDTO(
-                name: nameController.text,
-                type: selectedType,
-                operatingSystem: selectedOS,
-                ipAddress: ipAddressController.text,
-                status: selectedStatus,
-                healthStatus: selectedHealthStatus,
-              );
-
-              _addDevice(newDevice);
-              Navigator.pop(context);
-            },
-            child: Text('Ekle'),
+                ),
+                SizedBox(height: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Cihaz Tipi',
+                      style: TextStyle(
+                        color: primaryTextColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: bgPrimaryColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedType,
+                          isExpanded: true,
+                          icon: Icon(Icons.keyboard_arrow_down,
+                              color: primaryTextColor),
+                          dropdownColor: bgPrimaryColor,
+                          style: TextStyle(
+                            color: primaryTextColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          items: [
+                            'Physical Server',
+                            'Virtual Server',
+                            'Database Server'
+                          ].map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              selectedType = newValue!;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'İşletim Sistemi',
+                      style: TextStyle(
+                        color: primaryTextColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: bgPrimaryColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedOS,
+                          isExpanded: true,
+                          icon: Icon(Icons.keyboard_arrow_down,
+                              color: primaryTextColor),
+                          dropdownColor: bgPrimaryColor,
+                          style: TextStyle(
+                            color: primaryTextColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          items: [
+                            'Windows Server',
+                            'Linux Server',
+                            'MacOS Server'
+                          ].map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              selectedOS = newValue!;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: ipAddressController,
+                  decoration: InputDecoration(
+                    labelText: 'IP Adresi',
+                    labelStyle: TextStyle(color: primaryTextColor),
+                    filled: true,
+                    fillColor: bgPrimaryColor,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: primaryTextColor, width: 2),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Çalışma Durumu',
+                      style: TextStyle(
+                        color: primaryTextColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: bgPrimaryColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedStatus,
+                          isExpanded: true,
+                          icon: Icon(Icons.keyboard_arrow_down,
+                              color: primaryTextColor),
+                          dropdownColor: bgPrimaryColor,
+                          style: TextStyle(
+                            color: primaryTextColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          items:
+                              ['Çalışıyor', 'Çalışmıyor'].map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              selectedStatus = newValue!;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sağlık Durumu',
+                      style: TextStyle(
+                        color: primaryTextColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: bgPrimaryColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedHealthStatus,
+                          isExpanded: true,
+                          icon: Icon(Icons.keyboard_arrow_down,
+                              color: primaryTextColor),
+                          dropdownColor: bgPrimaryColor,
+                          style: TextStyle(
+                            color: primaryTextColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          items: ['Good', 'Requires Check', 'Critical']
+                              .map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              selectedHealthStatus = newValue!;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'İptal',
+                style: TextStyle(
+                  color: primaryTextColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final device = DeviceDTO(
+                  name: nameController.text,
+                  type: selectedType,
+                  operatingSystem: selectedOS,
+                  ipAddress: ipAddressController.text,
+                  status: selectedStatus,
+                  healthStatus: selectedHealthStatus,
+                );
+                _addDevice(device);
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryTextColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              child: Text(
+                'Ekle',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

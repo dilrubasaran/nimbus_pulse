@@ -1,6 +1,9 @@
 class ApiEndpoints {
   static const String baseUrl = 'https://10.0.2.2:7185/api';
 
+  //?Telefon için bağlama
+  // static const String baseUrl = 'https://192.168.1.102:7185/api';
+
   // Auth endpoints
   static const String register = '/user/register';
   static const String login = '/user/login';
