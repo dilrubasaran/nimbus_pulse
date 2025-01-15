@@ -2,22 +2,22 @@
 
 Nimbus Pulse, bulut ve sunucu izleme işlemleri için geliştirilmiş kapsamlı bir uygulamadır. Hedefimiz, kullanıcıların sistemlerini daha verimli bir şekilde yönetmesini, cihazlarının performansını analiz etmesini ve gerçek zamanlı verilerle optimize edilmiş bir deneyim yaşamasını sağlamaktır.
 
-##🎨 Mobil Uygulama
+## Mobil Uygulama 🎨
 Flutter ile tasarlanmış kullanıcı dostu bir mobil arayüz sunar:
 
-###
-📊 Performans Analizi:
+### Performans Analizi:📊
 Cihaz bilgilerini inceleyebilir ve performans verilerini grafiklerle analiz edebilirsiniz.
 
-###⚙️ Özelleştirilebilir Ayarlar:
+### Özelleştirilebilir Ayarlar:⚙️
 Profil, tema, dil ve şifre değişikliği gibi özellikleri özelleştirebilirsiniz.
 
-##🖥️ Backend API
+## Backend API 🖥️
 .NET Core ile geliştirilen güçlü bir altyapı:
 
-📂 Veritabanı İşlemleri:
+## Veritabanı İşlemleri:📂
 SQLite kullanılarak güvenilir ve performanslı bir sistem sağlanır.
-🔗 Mobil Entegrasyon:
+
+## Mobil Entegrasyon:🔗 
 Sorunsuz API bağlantıları ve yüksek veri iletişim performansı.
 ✨ Özellikler
 📱 Nimbus Pulse Mobil Uygulama
