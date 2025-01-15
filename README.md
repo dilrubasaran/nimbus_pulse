@@ -19,28 +19,27 @@ SQLite kullanılarak güvenilir ve performanslı bir sistem sağlanır.
 
 ## Mobil Entegrasyon:🔗 
 Sorunsuz API bağlantıları ve yüksek veri iletişim performansı.
-✨ Özellikler
-📱 Nimbus Pulse Mobil Uygulama
-Performans İzleme:
+## Özellikler ✨
+### Nimbus Pulse Mobil Uygulama 📱
+#### Performans İzleme:
 Cihazların RAM, GPU, disk ve diğer bileşenlerine ait performans verilerini grafiklerle görselleştirin.
 
-Kullanıcı Dostu Arayüz:
+#### Kullanıcı Dostu Arayüz:
 Ayarlar, raporlar ve cihaz yönetimi için özelleştirilebilir seçenekler sunar.
 
-Ayarlar Sayfası:
-
+#### Ayarlar Sayfası:
 Profil yönetimi
 Tema değişikliği
 Dil ve şifre ayarları
-Raporlama:
+#### Raporlama:
 Cihaz kullanım bilgilerini analiz edin ve PDF veya Excel formatında dışa aktarın.
 
-🌟 Kullanım Alanları
+ ## Kullanım Alanları 🌟
 Nimbus Pulse, hem bireyler hem de şirketler için geliştirilmiştir.
 
-🛠️ Sistem Yöneticileri:
+### Sistem Yöneticileri: 🛠️
 Gerçek zamanlı performans verilerini izleme ve analiz etme.
-👩‍💻 Bireysel Kullanıcılar:
+### Bireysel Kullanıcılar: 👩‍💻
 Kendi cihazlarının performansını optimize etme ve izleme.
-🏢 Kurumlar:
+###  Kurumlar:🏢
 Birden fazla cihazın kullanım verilerini analiz ederek yönetim süreçlerini kolaylaştırma.
