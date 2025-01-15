@@ -5,7 +5,8 @@ Nimbus Pulse, bulut ve sunucu izleme işlemleri için geliştirilmiş kapsamlı 
 ##🎨 Mobil Uygulama
 Flutter ile tasarlanmış kullanıcı dostu bir mobil arayüz sunar:
 
-###📊 Performans Analizi:
+###
+📊 Performans Analizi:
 Cihaz bilgilerini inceleyebilir ve performans verilerini grafiklerle analiz edebilirsiniz.
 
 ###⚙️ Özelleştirilebilir Ayarlar:
