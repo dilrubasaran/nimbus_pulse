@@ -1,4 +1,4 @@
-#🌩️ Nimbus Pulse
+# Nimbus Pulse 🌩️ 
 
 Nimbus Pulse, bulut ve sunucu izleme işlemleri için geliştirilmiş kapsamlı bir uygulamadır. Hedefimiz, kullanıcıların sistemlerini daha verimli bir şekilde yönetmesini, cihazlarının performansını analiz etmesini ve gerçek zamanlı verilerle optimize edilmiş bir deneyim yaşamasını sağlamaktır.
 
