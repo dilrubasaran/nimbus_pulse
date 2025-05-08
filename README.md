@@ -24,6 +24,8 @@ PDF ve Excel Formatları: Raporlarınızı farklı formatlarda paylaşarak anali
 Gerçek Zamanlı ve Planlanmış Raporlama: İhtiyacınıza göre anlık rapor oluşturabilir veya düzenli raporlamalar planlayabilirsiniz.
 
 ## Backend API 🖥️
+https://github.com/dilrubasaran/NimbusPulseAPI
+
 .NET Core ile geliştirilen güçlü ve ölçeklenebilir bir altyapı. Nimbus Pulse, backend işlemleri için aşağıdaki yaklaşımları ve teknolojileri kullanır:
 
 ### 📂 Veritabanı İşlemleri
